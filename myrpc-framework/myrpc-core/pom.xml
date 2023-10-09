@@ -5,17 +5,11 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>com.yang</groupId>
-        <artifactId>myrpc</artifactId>
+        <artifactId>myrpc-framework</artifactId>
         <version>1.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>myrpc-demo</artifactId>
-    <packaging>pom</packaging>
-    <modules>
-        <module>provider-demo</module>
-        <module>consumer-demo</module>
-        <module>api</module>
-    </modules>
+    <artifactId>myrpc-core</artifactId>
 
     <properties>
         <maven.compiler.source>11</maven.compiler.source>
