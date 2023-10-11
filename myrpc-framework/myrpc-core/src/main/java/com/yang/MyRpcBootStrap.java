@@ -2,9 +2,12 @@ package com.yang;
 
 import com.yang.config.ProtocolConfig;
 import com.yang.config.ReferenceConfig;
-import com.yang.config.RegistryConfig;
+import com.yang.discovery.Registry;
+import com.yang.discovery.RegistryConfig;
 import com.yang.config.ServiceConfig;
+import com.yang.utils.zooKeeper.ZooKeeperUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.zookeeper.ZooKeeper;
 
 import java.util.List;
 
@@ -14,7 +17,21 @@ public class MyRpcBootStrap {
   // 饿汉单例
   private static final MyRpcBootStrap myRpcBootStrap = new MyRpcBootStrap();
 
+  // 默认配置信息
+  private String applicationName = "default-name";
+
+
+  private Registry registry;
+  private RegistryConfig registryConfig;
+
+  private ProtocolConfig protocolConfig;
+
+  private int port = 8088;
+
+  private ZooKeeper zooKeeper;
+
   private MyRpcBootStrap() {
+
     // 启动时的初始化工作
   }
 
@@ -38,6 +55,7 @@ public class MyRpcBootStrap {
    * @return 当前实例
    */
   public MyRpcBootStrap application(String name) {
+    this.applicationName = name;
     return this;
   }
 
@@ -49,9 +67,22 @@ public class MyRpcBootStrap {
    * @return 当前实例
    */
   public MyRpcBootStrap protocol(ProtocolConfig protocolConfig) {
+    this.protocolConfig = protocolConfig;
     log.info("使用{}协议进行序列化", protocolConfig.getProtocolName());
     return this;
   }
+
+  /**
+   * 配置注册中心
+   * @param registryConfig 配置注册中心的配置类
+   * @return 当前实例
+   */
+  public MyRpcBootStrap registry(RegistryConfig registryConfig) {
+    this.registry = registryConfig.getRegistry();
+    return this;
+  }
+
+
 
   /**
    * 发布服务，将接口、实现注册到匹配的注册中心
@@ -60,18 +91,20 @@ public class MyRpcBootStrap {
    * @return 当前实例
    */
   public MyRpcBootStrap publishService(ServiceConfig<?> serviceConfig) {
-    log.info("服务已经被发布注册{}",serviceConfig.getInterfaces().getName());
+    registry.register(serviceConfig);
     return this;
   }
 
   /**
    * 批量发布
    *
-   * @param serviceConfig 集合
+   * @param serviceConfigList 服务配置集合
    * @return 当前实例
    */
-  public MyRpcBootStrap publishService(List<ServiceConfig<?>> serviceConfig) {
-
+  public MyRpcBootStrap publishService(List<ServiceConfig<?>> serviceConfigList) {
+    for (ServiceConfig<?> serviceConfig : serviceConfigList) {
+      registry.register(serviceConfig);
+    }
     return this;
   }
 
@@ -79,19 +112,10 @@ public class MyRpcBootStrap {
    * 启动netty服务
    */
   public void start() {
-
   }
+
 
   // ----------------------------------服务调用方Api-----------------------------------
-
-  /**
-   * 配置注册中心
-   * @param registryConfig 配置注册中心的配置类
-   * @return 当前实例
-   */
-  public MyRpcBootStrap registry(RegistryConfig registryConfig) {
-    return this;
-  }
 
   /**
    * @param referenceConfig 调用方配置类

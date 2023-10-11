@@ -1,7 +1,7 @@
 package com.yang;
 
-import com.yang.utils.zooKeeper.ZookeeperNode;
-import com.yang.utils.zooKeeper.ZookeeperUtil;
+import com.yang.utils.zooKeeper.ZooKeeperNode;
+import com.yang.utils.zooKeeper.ZooKeeperUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.ZooDefs;
@@ -14,20 +14,20 @@ public class Application {
 
   public static void main(String[] args) {
 
-    ZooKeeper zooKeeper = ZookeeperUtil.connection();
+    ZooKeeper zooKeeper = ZooKeeperUtils.connection();
     String basePath = "/myrpc-metadata";
     String providersPath = basePath + "/providers";
     String consumersPath = basePath + "/consumers";
 
-    ZookeeperNode baseNode = new ZookeeperNode(basePath, null);
-    ZookeeperNode providersNode = new ZookeeperNode(providersPath, null);
-    ZookeeperNode consumersNode = new ZookeeperNode(consumersPath, null);
+    ZooKeeperNode baseNode = new ZooKeeperNode(basePath, null);
+    ZooKeeperNode providersNode = new ZooKeeperNode(providersPath, null);
+    ZooKeeperNode consumersNode = new ZooKeeperNode(consumersPath, null);
 
     List.of(baseNode, providersNode, consumersNode).forEach(node -> {
-      ZookeeperUtil.createNode(zooKeeper,node, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT,null);
+      ZooKeeperUtils.createNode(zooKeeper,node, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT,null);
     });
 
-    ZookeeperUtil.close(zooKeeper);
+    ZooKeeperUtils.close(zooKeeper);
 
   }
 

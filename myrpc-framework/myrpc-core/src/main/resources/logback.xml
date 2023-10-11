@@ -8,8 +8,29 @@
     </appender>
 
 
+    <!-- 设置 WARN 级别的日志消息颜色为黄色 -->
+    <appender name="WARN" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %highlight(%-5level) - %msg%n</pattern>
+            <!-- 设置 WARN 级别的颜色为黄色 -->
+            <highlight class="yellow"/>
+        </encoder>
+    </appender>
+
+    <!-- 设置 ERROR 级别的日志消息颜色为红色 -->
+    <appender name="ERROR" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %highlight(%-5level) - %msg%n</pattern>
+            <!-- 设置 ERROR 级别的颜色为红色 -->
+            <highlight class="red"/>
+        </encoder>
+    </appender>
+
 
     <root level="debug">
         <appender-ref ref="CONSOLE"/>
     </root>
+
+
+
  </configuration>

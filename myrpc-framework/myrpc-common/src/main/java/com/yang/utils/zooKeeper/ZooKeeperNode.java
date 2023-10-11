@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ZookeeperNode {
+public class ZooKeeperNode {
 
   private String nodePath;
 

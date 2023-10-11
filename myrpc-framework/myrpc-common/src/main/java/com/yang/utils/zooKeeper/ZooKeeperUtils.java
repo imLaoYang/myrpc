@@ -1,6 +1,7 @@
 package com.yang.utils.zooKeeper;
 
-import com.yang.Constant;
+import com.yang.constant.Constant;
+import com.yang.constant.NetConstant;
 import com.yang.exception.ZookeeperException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.zookeeper.CreateMode;
@@ -14,7 +15,7 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
 @Slf4j
-public class ZookeeperUtil {
+public class ZooKeeperUtils {
 
 
   /**
@@ -23,12 +24,10 @@ public class ZookeeperUtil {
    * @return zookeeper实例
    */
   public static ZooKeeper connection() {
-
-    String connection = Constant.DEFAULT_ZK_CONNECTION;
+    String connection = NetConstant.DEFAULT_ZK_CONNECTION;
     Integer timeout = Constant.TIMEOUT;
 
     return connection(connection, timeout);
-
   }
 
   /**
@@ -66,14 +65,14 @@ public class ZookeeperUtil {
    * @param watcher    watcher实例
    * @return true:成功  false:失败
    */
-  public static Boolean createNode(ZooKeeper zooKeeper, ZookeeperNode node, List<ACL> acl, CreateMode createMode, Watcher watcher) {
+  public static Boolean createNode(ZooKeeper zooKeeper, ZooKeeperNode node, List<ACL> acl, CreateMode createMode, Watcher watcher) {
     try {
       if (zooKeeper.exists(node.getNodePath(), watcher) == null) {
         String result = zooKeeper.create(node.getNodePath(), null, acl, createMode);
-        log.info("--------------节点[{}]创建成功------------", result);
+        log.info("节点创建成功:[{}]", result);
         return true;
       } else {
-        log.info("---------------节点路径已存在:{}-----------", node.getNodePath());
+        log.info("节点路径已存在:[{}]", node.getNodePath());
       }
       return false;
     } catch (KeeperException | InterruptedException e) {
@@ -93,10 +92,10 @@ public class ZookeeperUtil {
   public static Boolean exists(ZooKeeper zooKeeper,String node,Watcher watcher){
 
     try {
-        return zooKeeper.exists(node,watcher) != null;
+      return zooKeeper.exists(node, watcher) != null;
     } catch (KeeperException | InterruptedException e) {
-      log.error("--------------ZookeeperUtil.exists()方法发送异常----------------",e);
-      throw new RuntimeException(e);
+      log.error("--------------ZookeeperUtil.exists()方法异常----------------node为{}", node,e);
+      throw new ZookeeperException();
     }
 
   }
