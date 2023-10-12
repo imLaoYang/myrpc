@@ -5,11 +5,23 @@ import com.yang.config.ReferenceConfig;
 import com.yang.discovery.Registry;
 import com.yang.discovery.RegistryConfig;
 import com.yang.config.ServiceConfig;
+import com.yang.handler.TestHandler;
 import com.yang.utils.zooKeeper.ZooKeeperUtils;
+import io.netty.bootstrap.ServerBootstrap;
+import io.netty.buffer.ByteBuf;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.SocketChannel;
+import io.netty.channel.socket.nio.NioServerSocketChannel;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.zookeeper.ZooKeeper;
 
+import java.net.InetSocketAddress;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 public class MyRpcBootStrap {
@@ -21,6 +33,17 @@ public class MyRpcBootStrap {
   private String applicationName = "default-name";
   private Registry registry;
   private ProtocolConfig protocolConfig;
+
+  /**
+   *  已发布的服务列表
+   *  key 接口全限定的名
+   *  value ServiceConfig
+   */
+  public static Map<String,ServiceConfig<?>> SERVERS_MAP = new ConcurrentHashMap<>(16);
+
+  // Netty的channel缓存
+  public static final Map<InetSocketAddress, Channel> CHANNEL_CACHE = new ConcurrentHashMap<>(16);
+
   private MyRpcBootStrap() {
 
     // 启动时的初始化工作
@@ -104,11 +127,31 @@ public class MyRpcBootStrap {
    * 启动netty服务
    */
   public void start() {
+
+    NioEventLoopGroup boss = new NioEventLoopGroup();
+    NioEventLoopGroup work = new NioEventLoopGroup();
+
     try {
-      Thread.sleep(1000000);
+      ServerBootstrap serverBootstrap = new ServerBootstrap();
+      serverBootstrap.group(boss,work)
+              .channel(NioServerSocketChannel.class)
+              .localAddress(new InetSocketAddress(8080))
+              .childHandler(new ChannelInitializer<SocketChannel>() {
+                @Override
+                protected void initChannel(SocketChannel ch) throws Exception {
+                  ch.pipeline().addLast(null);
+                }
+              });
+
+      // 返回的结果
+      ChannelFuture channelFuture = serverBootstrap.bind().sync();
+
+      channelFuture.channel().closeFuture().sync();
+
     } catch (InterruptedException e) {
       throw new RuntimeException(e);
     }
+
   }
 
 
