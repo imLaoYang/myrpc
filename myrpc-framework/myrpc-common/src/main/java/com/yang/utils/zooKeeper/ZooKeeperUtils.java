@@ -24,7 +24,7 @@ public class ZooKeeperUtils {
    * @return zookeeper实例
    */
   public static ZooKeeper connection() {
-    String connection = NetConstant.DEFAULT_ZK_CONNECTION;
+    String connection = NetConstant.DEFAULT_CONNECTION;
     Integer timeout = Constant.TIMEOUT;
 
     return connection(connection, timeout);
@@ -114,4 +114,12 @@ public class ZooKeeperUtils {
   }
 
 
+  public static List<String> getChildren(ZooKeeper zooKeeper, String path,Watcher watcher) {
+    try {
+      return zooKeeper.getChildren(path, watcher);
+    } catch (KeeperException | InterruptedException e) {
+      log.error("找不到对应子节点---->{}",path);
+      throw new RuntimeException(e);
+    }
+  }
 }

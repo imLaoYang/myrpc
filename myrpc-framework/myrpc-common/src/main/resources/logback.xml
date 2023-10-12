@@ -7,7 +7,9 @@
         </encoder>
     </appender>
 
-
+    <!-- 设置颜色 -->
+    <highlight level="ERROR" foreground="red" background="white" />
+    <highlight level="WARN" foreground="yellow" background="black" />
 
     <root level="debug">
         <appender-ref ref="CONSOLE"/>

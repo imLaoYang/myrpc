@@ -6,6 +6,10 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * 配置注册中心相关信息的配置类工厂
+ * 设计模式：工厂
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

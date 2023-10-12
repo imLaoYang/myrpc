@@ -4,7 +4,7 @@ import com.yang.TestService;
 
 public class TestServiceImpl implements TestService {
   @Override
-  public String test(String msg) {
-    return "Test Hi!";
+  public void test(String msg) {
+    System.out.println("Test Hi!");
   }
 }

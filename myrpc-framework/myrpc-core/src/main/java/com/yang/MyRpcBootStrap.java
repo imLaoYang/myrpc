@@ -19,17 +19,8 @@ public class MyRpcBootStrap {
 
   // 默认配置信息
   private String applicationName = "default-name";
-
-
   private Registry registry;
-  private RegistryConfig registryConfig;
-
   private ProtocolConfig protocolConfig;
-
-  private int port = 8088;
-
-  private ZooKeeper zooKeeper;
-
   private MyRpcBootStrap() {
 
     // 启动时的初始化工作
@@ -92,6 +83,7 @@ public class MyRpcBootStrap {
    */
   public MyRpcBootStrap publishService(ServiceConfig<?> serviceConfig) {
     registry.register(serviceConfig);
+
     return this;
   }
 
@@ -112,6 +104,11 @@ public class MyRpcBootStrap {
    * 启动netty服务
    */
   public void start() {
+    try {
+      Thread.sleep(1000000);
+    } catch (InterruptedException e) {
+      throw new RuntimeException(e);
+    }
   }
 
 
@@ -122,8 +119,9 @@ public class MyRpcBootStrap {
    * @return 当前实例
    */
   public MyRpcBootStrap reference(ReferenceConfig<?> referenceConfig) {
-
     // 配置reference,调用get()，生成代理对象
+    referenceConfig.setRegistry(registry);
+
     return this;
   }
 }
