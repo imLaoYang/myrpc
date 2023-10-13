@@ -82,7 +82,7 @@ public class ReferenceConfig<T> {
         // TODO 封装报文
 
         // 4.发送请求,携带信息（接口，参数列表) 通过channel发送
-        // 异步发送
+        // 异步发送,只做发送并且拿到响应，方法的响应由方法返回
         CompletableFuture<Object> completableFuture = new CompletableFuture<>();
 channel.writeAndFlush(new Object()).addListener((ChannelFutureListener) promise -> {
           if (!promise.isSuccess()) {

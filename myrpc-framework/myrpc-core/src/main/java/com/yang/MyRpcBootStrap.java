@@ -23,6 +23,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+
+/**
+ * RPC服务启动器
+ * 功能：1、向注册中心(注册服务和拉取服务)
+ *      2、注入被调用的方法和接口
+ */
 @Slf4j
 public class MyRpcBootStrap {
 
