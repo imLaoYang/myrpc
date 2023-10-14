@@ -6,6 +6,7 @@ import com.yang.constant.NetConstant;
 import com.yang.discovery.Registry;
 import com.yang.discovery.RegistryConfig;
 import com.yang.config.ServiceConfig;
+import com.yang.netty.channel.ProviderChannelInitializer;
 import com.yang.utils.NetUtils;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.ByteBuf;
@@ -151,17 +152,7 @@ public class MyRpcBootStrap {
       ServerBootstrap serverBootstrap = new ServerBootstrap();
       serverBootstrap.group(boss,work)
               .channel(NioServerSocketChannel.class)
-              .childHandler(new ChannelInitializer<SocketChannel>() {
-                @Override
-                protected void initChannel(SocketChannel ch) throws Exception {
-                  ch.pipeline().addLast(new SimpleChannelInboundHandler<ByteBuf>() {
-                    @Override
-                    protected void channelRead0(ChannelHandlerContext ctx, ByteBuf msg) throws Exception {
-                      ctx.channel().writeAndFlush(Unpooled.copiedBuffer("hello".getBytes()));
-                    }
-                  });
-                }
-              });
+              .childHandler(new ProviderChannelInitializer());
 
       // 返回的结果
       ChannelFuture channelFuture = serverBootstrap.bind(NetConstant.PORT).sync();

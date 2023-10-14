@@ -1,6 +1,7 @@
 package com.yang;
 
 import com.yang.exception.NetException;
+import com.yang.netty.channel.ConsumerChannelInitializer;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
@@ -29,20 +30,7 @@ public class NettyBootStrapInitializer {
     NioEventLoopGroup group = new NioEventLoopGroup();
     BOOTSTRAP.group(group)
             .channel(NioSocketChannel.class)
-            .handler(new ChannelInitializer<SocketChannel>() {
-              @Override
-              protected void initChannel(SocketChannel ch) throws Exception {
-                ch.pipeline().addLast(new SimpleChannelInboundHandler<ByteBuf>() {
-                  @Override
-                  protected void channelRead0(ChannelHandlerContext ctx, ByteBuf msg) throws Exception {
-                    String result = msg.toString(StandardCharsets.UTF_8);
-                    CompletableFuture<Object> completableFuture = MyRpcBootStrap.PENDING_REQUEST.get(1L);
-                    completableFuture.complete(result);
-                  }
-                });
-              }
-            });
-
+            .handler(new ConsumerChannelInitializer());
   }
   public NettyBootStrapInitializer() {
   }
