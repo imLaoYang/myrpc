@@ -4,6 +4,8 @@ import com.yang.MyRpcBootStrap;
 import com.yang.NettyBootStrapInitializer;
 import com.yang.discovery.Registry;
 import com.yang.exception.NetException;
+import com.yang.transport.message.RequestPayload;
+import com.yang.transport.message.RpcRequest;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
@@ -54,16 +56,28 @@ public class RpcConsumerInvocationHandler implements InvocationHandler {
 
       // 3.通过地址连接拿到一个可用channel
       Channel channel = getAvailableChannel(ipAndPort);
-      log.info("获得了channel{}",channel);
+      log.info("获得了channel{}", channel);
 
 
       // TODO 封装报文
+      RequestPayload requestPayload = RequestPayload.builder()
+              .interfaceName(getInterfaces()[0].getName())
+              .methodName(method.getName())
+              .parameterTYpe(method.getReturnType())
+              .parameterValue(method.getParameters()).build();
+
+      RpcRequest rpcRequest = RpcRequest.builder()
+              .requestId(1L)
+              .requestType((byte) 1)
+              .compressType((byte) 1)
+              .serializeType((byte) 1)
+              .requestPayload(requestPayload).build();
 
       // 4.发送请求,携带信息（接口，参数列表) 通过channel发送
-      // 异步发送,只做发送并且拿到响应，方法的响应由方法返回
       CompletableFuture<Object> completableFuture = new CompletableFuture<>();
       MyRpcBootStrap.PENDING_REQUEST.put(1L, completableFuture);
-      channel.writeAndFlush(Unpooled.copiedBuffer("hello".getBytes())).addListener((ChannelFutureListener) promise -> {
+      // 异步发送
+      channel.writeAndFlush(rpcRequest).addListener((ChannelFutureListener) promise -> {
         if (!promise.isSuccess()) {
           completableFuture.completeExceptionally(promise.cause());
           throw new NetException("!promise.isSuccess()");
@@ -76,6 +90,7 @@ public class RpcConsumerInvocationHandler implements InvocationHandler {
 
   /**
    * 通过地址连接拿到一个可用channel
+   *
    * @param ipAndPort 服务列表的地址
    * @return channel
    */
@@ -97,7 +112,7 @@ public class RpcConsumerInvocationHandler implements InvocationHandler {
       try {
         channel = completableFuture.get(3, TimeUnit.SECONDS);
       } catch (InterruptedException | ExecutionException | TimeoutException e) {
-        log.error("获取channel异常",e);
+        log.error("获取channel异常", e);
         throw new NetException("channel获取异常");
       }
       if (channel == null) {
