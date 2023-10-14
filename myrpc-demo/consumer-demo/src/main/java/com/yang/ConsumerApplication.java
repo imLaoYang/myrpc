@@ -18,7 +18,7 @@ public class ConsumerApplication {
 
     // 获取一个代理对象
     TestService testService = referenceConfig.get();
-     testService.test("hello");
-
+    String proxy = testService.test("12");
+    System.out.println(proxy);
   }
 }

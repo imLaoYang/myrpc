@@ -2,25 +2,26 @@ package com.yang;
 
 import com.yang.config.ProtocolConfig;
 import com.yang.config.ReferenceConfig;
+import com.yang.constant.NetConstant;
 import com.yang.discovery.Registry;
 import com.yang.discovery.RegistryConfig;
 import com.yang.config.ServiceConfig;
-import com.yang.handler.TestHandler;
-import com.yang.utils.zooKeeper.ZooKeeperUtils;
+import com.yang.utils.NetUtils;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.ByteBuf;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelInitializer;
+import io.netty.buffer.Unpooled;
+import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.zookeeper.ZooKeeper;
 
 import java.net.InetSocketAddress;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
 
@@ -35,10 +36,13 @@ public class MyRpcBootStrap {
   // 饿汉单例
   private static final MyRpcBootStrap myRpcBootStrap = new MyRpcBootStrap();
 
-  // 默认配置信息
-  private String applicationName = "default-name";
-  private Registry registry;
-  private ProtocolConfig protocolConfig;
+  /*
+   * 远程调用返回的结果，全局挂起的CompletableFuture
+   * key 请求的标识
+   * value CompletableFuture
+   */
+  public static final Map<Long, CompletableFuture<Object>> PENDING_REQUEST = new ConcurrentHashMap<>(128);
+
 
   /**
    *  已发布的服务列表
@@ -49,6 +53,12 @@ public class MyRpcBootStrap {
 
   // Netty的channel缓存
   public static final Map<InetSocketAddress, Channel> CHANNEL_CACHE = new ConcurrentHashMap<>(16);
+
+  // 默认配置信息
+  private String applicationName = "default-name";
+  private Registry registry;
+  private ProtocolConfig protocolConfig;
+
 
   private MyRpcBootStrap() {
 
@@ -141,16 +151,21 @@ public class MyRpcBootStrap {
       ServerBootstrap serverBootstrap = new ServerBootstrap();
       serverBootstrap.group(boss,work)
               .channel(NioServerSocketChannel.class)
-              .localAddress(new InetSocketAddress(8080))
               .childHandler(new ChannelInitializer<SocketChannel>() {
                 @Override
                 protected void initChannel(SocketChannel ch) throws Exception {
-                  ch.pipeline().addLast(null);
+                  ch.pipeline().addLast(new SimpleChannelInboundHandler<ByteBuf>() {
+                    @Override
+                    protected void channelRead0(ChannelHandlerContext ctx, ByteBuf msg) throws Exception {
+                      ctx.channel().writeAndFlush(Unpooled.copiedBuffer("hello".getBytes()));
+                    }
+                  });
                 }
               });
 
       // 返回的结果
-      ChannelFuture channelFuture = serverBootstrap.bind().sync();
+      ChannelFuture channelFuture = serverBootstrap.bind(NetConstant.PORT).sync();
+      log.info("netty已经连接绑定--->{}",NetConstant.PORT);
 
       channelFuture.channel().closeFuture().sync();
 

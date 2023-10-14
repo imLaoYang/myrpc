@@ -26,10 +26,12 @@ public class NetUtils {
           }
           if (address.getAddress() instanceof Inet4Address) {
             Inet4Address inet4Address = (Inet4Address) address.getAddress();
+            log.info("inet4Address是--->{}",inet4Address.getHostAddress());
             return inet4Address.getHostAddress();
           }
         }
       }
+      log.info("inet4Address是--->{}",InetAddress.getLocalHost().getHostAddress());
       return InetAddress.getLocalHost().getHostAddress();
     } catch (SocketException | UnknownHostException e) {
       log.error("获取ip异常",e);
@@ -39,6 +41,7 @@ public class NetUtils {
 
   public static String getLocalIP() {
     try {
+      log.info("inet4Address是--->{}",InetAddress.getLocalHost().getHostAddress());
       return InetAddress.getLocalHost().getHostAddress();
     } catch (UnknownHostException e) {
       log.error("获取ip异常",e);
