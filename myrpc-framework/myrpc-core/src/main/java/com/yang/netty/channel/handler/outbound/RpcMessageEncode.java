@@ -14,13 +14,13 @@ import java.io.ObjectOutputStream;
 
 /**
  * 功能：将请求封装成报文
- * 这是出站时pipeline走的第一个channelHandler
+ * 这是出站时pipeline走的channelHandler
  */
 @Slf4j
 public class RpcMessageEncode extends MessageToByteEncoder<RpcRequest> {
 
   @Override
-  protected void encode(ChannelHandlerContext ctx, RpcRequest msg, ByteBuf byteBuf) throws Exception {
+  protected void encode(ChannelHandlerContext ctx, RpcRequest rpcRequest, ByteBuf byteBuf) {
     // 4 magic
     byteBuf.writeBytes(MessageFormatConstant.MAGIC);
     // 1 version
@@ -28,49 +28,55 @@ public class RpcMessageEncode extends MessageToByteEncoder<RpcRequest> {
     // 2 header Length
     byteBuf.writeShort(MessageFormatConstant.HEADER_LENGTH);
     // 4 full length
-    byteBuf.writerIndex(byteBuf.writerIndex() + 4);
+    byteBuf.writerIndex(byteBuf.writerIndex() + MessageFormatConstant.LENGTH.FULL_LENGTH);
     // 1 requestType
-    byteBuf.writeByte(msg.getRequestType());
+    byteBuf.writeByte(rpcRequest.getRequestType());
     // 1 serializeType
-    byteBuf.writeByte(msg.getSerializeType());
+    byteBuf.writeByte(rpcRequest.getSerializeType());
     // 1 compressType
-    byteBuf.writeByte(msg.getCompressType());
+    byteBuf.writeByte(rpcRequest.getCompressType());
     // 8 requestId
-    byteBuf.writeLong(msg.getRequestId());
-    // body
-    byte[] bodyBy = getBodyBytes(msg.getRequestPayload());
-    byteBuf.writeBytes(bodyBy);
+    byteBuf.writeLong(rpcRequest.getRequestId());
 
+    // 心跳请求没有body
+    byte[] body = null;
+    if (rpcRequest.getRequestPayload() != null) {
+      body = getBodyBytes(rpcRequest.getRequestPayload());
+      // 写入body
+      byteBuf.writeBytes(body);
+    }
+
+    // full length
+    int bodyLength = body == null ? 0 : body.length;
     // 保存当前指针位置
     int index = byteBuf.writerIndex();
     // 移动指针到full length位置
-    byteBuf.writerIndex(7);
+    byteBuf.writerIndex(MessageFormatConstant.LENGTH.MAGIC_LENGTH + MessageFormatConstant.LENGTH.VERSION_LENGTH + MessageFormatConstant.LENGTH.HEADER_LENGTH);
     // 写入full length长度
-    byteBuf.writeInt(MessageFormatConstant.HEADER_LENGTH + bodyBy.length);
+    byteBuf.writeInt(MessageFormatConstant.HEADER_LENGTH + bodyLength);
     // 指针归位
-    byteBuf.writeInt(index);
-
-
+    byteBuf.writerIndex(index);
   }
 
 
   /**
    * 序列化body
-   * @param requestPayload
-   * @return
+   *
+   * @param requestPayload body
+   * @return byte数组
    */
-  private byte[] getBodyBytes(RequestPayload requestPayload){
+  private byte[] getBodyBytes(RequestPayload requestPayload) {
     try {
       ByteArrayOutputStream byteArray = new ByteArrayOutputStream();
       ObjectOutputStream objectOutputStream = new ObjectOutputStream(byteArray);
       objectOutputStream.writeObject(requestPayload);
+      // TODO 压缩
+
       return byteArray.toByteArray();
     } catch (IOException e) {
-      log.info("序列化异常",e);
+      log.info("序列化异常", e);
       throw new RuntimeException(e);
     }
-
-
   }
 
 }

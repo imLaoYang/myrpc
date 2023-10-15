@@ -1,18 +1,14 @@
 package com.yang.netty.channel;
 
 
-import com.yang.MyRpcBootStrap;
 import com.yang.exception.NetException;
 import com.yang.netty.channel.handler.inbound.ConsumerChannelInboundHandler;
-import io.netty.buffer.ByteBuf;
+import com.yang.netty.channel.handler.outbound.RpcMessageEncode;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInitializer;
-import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.socket.SocketChannel;
+import io.netty.handler.logging.LoggingHandler;
 import lombok.extern.slf4j.Slf4j;
-
-import java.nio.charset.Charset;
-import java.util.concurrent.CompletableFuture;
 
 /**
  * 消费者的channel初始化器
@@ -26,7 +22,12 @@ public class ConsumerChannelInitializer extends ChannelInitializer<SocketChannel
 
   @Override
   protected void initChannel(SocketChannel ch) throws Exception {
-    ch.pipeline().addLast(new ConsumerChannelInboundHandler());
+    ch.pipeline()
+            // 日志处理器
+            .addLast(new LoggingHandler())
+            // 编码器
+            .addLast(new RpcMessageEncode())
+            .addLast(new ConsumerChannelInboundHandler());
 
   }
 

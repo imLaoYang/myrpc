@@ -2,26 +2,21 @@ package com.yang;
 
 import com.yang.config.ProtocolConfig;
 import com.yang.config.ReferenceConfig;
+import com.yang.config.ServiceConfig;
 import com.yang.constant.NetConstant;
 import com.yang.discovery.Registry;
 import com.yang.discovery.RegistryConfig;
-import com.yang.config.ServiceConfig;
 import com.yang.netty.channel.ProviderChannelInitializer;
-import com.yang.utils.NetUtils;
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
-import io.netty.channel.*;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
 import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import lombok.extern.slf4j.Slf4j;
 
 import java.net.InetSocketAddress;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -122,6 +117,7 @@ public class MyRpcBootStrap {
    * @return 当前实例
    */
   public MyRpcBootStrap publishService(ServiceConfig<?> serviceConfig) {
+    SERVERS_MAP.put(serviceConfig.getInterfaces().getName(),serviceConfig);
     registry.register(serviceConfig);
 
     return this;

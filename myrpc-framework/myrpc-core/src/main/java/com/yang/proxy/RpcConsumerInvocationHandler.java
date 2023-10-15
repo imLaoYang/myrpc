@@ -5,9 +5,9 @@ import com.yang.NettyBootStrapInitializer;
 import com.yang.discovery.Registry;
 import com.yang.exception.NetException;
 import com.yang.transport.message.RequestPayload;
+import com.yang.transport.message.RequestType;
 import com.yang.transport.message.RpcRequest;
 import io.netty.bootstrap.Bootstrap;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
 import lombok.AllArgsConstructor;
@@ -58,17 +58,18 @@ public class RpcConsumerInvocationHandler implements InvocationHandler {
       Channel channel = getAvailableChannel(ipAndPort);
       log.info("获得了channel{}", channel);
 
-
-      // TODO 封装报文
+      // 封装报文
       RequestPayload requestPayload = RequestPayload.builder()
               .interfaceName(getInterfaces()[0].getName())
               .methodName(method.getName())
-              .parameterTYpe(method.getReturnType())
-              .parameterValue(method.getParameters()).build();
+              .parameterTypes(method.getParameterTypes())
+              .parameterValue(args).build();
 
+
+      // todo 请求,类型处理
       RpcRequest rpcRequest = RpcRequest.builder()
               .requestId(1L)
-              .requestType((byte) 1)
+              .requestType(RequestType.REQUEST.getId())
               .compressType((byte) 1)
               .serializeType((byte) 1)
               .requestPayload(requestPayload).build();
@@ -80,7 +81,7 @@ public class RpcConsumerInvocationHandler implements InvocationHandler {
       channel.writeAndFlush(rpcRequest).addListener((ChannelFutureListener) promise -> {
         if (!promise.isSuccess()) {
           completableFuture.completeExceptionally(promise.cause());
-          throw new NetException("!promise.isSuccess()");
+          throw new NetException("promise未成功异常");
         }
       });
       // get方法阻塞（拿到的是compete方法的参数），等待complete方法的执行
@@ -90,7 +91,6 @@ public class RpcConsumerInvocationHandler implements InvocationHandler {
 
   /**
    * 通过地址连接拿到一个可用channel
-   *
    * @param ipAndPort 服务列表的地址
    * @return channel
    */

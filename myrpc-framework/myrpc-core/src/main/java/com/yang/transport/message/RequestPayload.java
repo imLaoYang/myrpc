@@ -5,6 +5,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
+
 /**
  *  被调用接口的封装
  */
@@ -12,7 +14,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class RequestPayload {
+public class RequestPayload implements Serializable {
 
   // 接口类路径
   private String interfaceName;
@@ -21,7 +23,7 @@ public class RequestPayload {
   private String methodName;
 
   // 参数列表(形参类型和形参值)
-  private Class<?> parameterTYpe;
+  private Class<?>[] parameterTypes;
   private Object[] parameterValue;
 
   // 返回值

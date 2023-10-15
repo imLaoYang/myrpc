@@ -12,7 +12,7 @@ public class ProviderApplication {
     // 定义具体的服务
     ServiceConfig<TestService> serviceConfig = new ServiceConfig<>();
     serviceConfig.setInterfaces(TestService.class);
-    serviceConfig.setReference(new TestServiceImpl());
+    serviceConfig.setImpl(new TestServiceImpl());
 
     // 启动类
     MyRpcBootStrap.getInstance()
