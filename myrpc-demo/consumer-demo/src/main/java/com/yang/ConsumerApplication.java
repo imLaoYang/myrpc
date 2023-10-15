@@ -2,7 +2,7 @@ package com.yang;
 
 import com.yang.config.ReferenceConfig;
 import com.yang.constant.Constant;
-import com.yang.discovery.RegistryConfig;
+import com.yang.config.RegistryConfig;
 
 public class ConsumerApplication {
   public static void main(String[] args) {

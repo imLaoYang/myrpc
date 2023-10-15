@@ -2,7 +2,7 @@ package com.yang;
 
 import com.yang.config.ProtocolConfig;
 import com.yang.constant.Constant;
-import com.yang.discovery.RegistryConfig;
+import com.yang.config.RegistryConfig;
 import com.yang.config.ServiceConfig;
 import com.yang.impl.TestServiceImpl;
 
@@ -19,7 +19,7 @@ public class ProviderApplication {
             .application("First") // 设置实例名称
             .registry(new RegistryConfig(Constant.DEFAULT_ZK_CONNECTION)) // 配置注册中心
             .protocol(new ProtocolConfig("defaultProtocol")) // 定义协议
-            .publishService(serviceConfig) // 发布服务，将接口、实现注册到匹配的注册中心
-            .start();
+            .publish(serviceConfig) // 发布服务，将接口、实现注册到匹配的注册中心
+            .start();  // 启动netty
   }
 }

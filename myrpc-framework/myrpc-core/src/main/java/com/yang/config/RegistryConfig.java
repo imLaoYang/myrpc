@@ -1,5 +1,6 @@
-package com.yang.discovery;
+package com.yang.config;
 
+import com.yang.discovery.Registry;
 import com.yang.discovery.impl.ZooKeeperRegistry;
 import com.yang.exception.RegistryException;
 import lombok.AllArgsConstructor;

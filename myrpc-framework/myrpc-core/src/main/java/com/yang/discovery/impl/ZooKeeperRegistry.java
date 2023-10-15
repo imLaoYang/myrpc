@@ -66,6 +66,11 @@ public class ZooKeeperRegistry extends AbstractRegistry {
     log.info("服务已经被发布注册:[{}]", serviceConfig.getInterfaces().getName());
   }
 
+  /**
+   * 发布注册
+   * @param serviceConfig 服务配置内容
+   * @param port 注册端口
+   */
   @Override
   public void register(ServiceConfig<?> serviceConfig, int port) {
     // 1.创建主节点
@@ -85,6 +90,11 @@ public class ZooKeeperRegistry extends AbstractRegistry {
     log.info("服务已经被发布注册:[{}]", serviceConfig.getInterfaces().getName());
   }
 
+  /**
+   * 拿到注册中心的ip列表
+   * @param serviceName 接口路径
+   * @return ip
+   */
   @Override
   public InetSocketAddress lookup(String serviceName) {
     // 父路径

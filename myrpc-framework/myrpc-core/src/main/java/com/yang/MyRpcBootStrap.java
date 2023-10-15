@@ -5,7 +5,7 @@ import com.yang.config.ReferenceConfig;
 import com.yang.config.ServiceConfig;
 import com.yang.constant.NetConstant;
 import com.yang.discovery.Registry;
-import com.yang.discovery.RegistryConfig;
+import com.yang.config.RegistryConfig;
 import com.yang.netty.channel.ProviderChannelInitializer;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
@@ -100,7 +100,7 @@ public class MyRpcBootStrap {
 
   /**
    * 配置注册中心
-   * @param registryConfig 配置注册中心的配置类
+   * @param registryConfig 配置注册中心的配置类 从config中拿到一个注册中心实例
    * @return 当前实例
    */
   public MyRpcBootStrap registry(RegistryConfig registryConfig) {
@@ -116,8 +116,10 @@ public class MyRpcBootStrap {
    * @param serviceConfig 服务配置
    * @return 当前实例
    */
-  public MyRpcBootStrap publishService(ServiceConfig<?> serviceConfig) {
+  public MyRpcBootStrap publish(ServiceConfig<?> serviceConfig) {
+    // 放入接口和类缓存
     SERVERS_MAP.put(serviceConfig.getInterfaces().getName(),serviceConfig);
+    // 向注册中心注册服务
     registry.register(serviceConfig);
 
     return this;
@@ -129,7 +131,7 @@ public class MyRpcBootStrap {
    * @param serviceConfigList 服务配置集合
    * @return 当前实例
    */
-  public MyRpcBootStrap publishService(List<ServiceConfig<?>> serviceConfigList) {
+  public MyRpcBootStrap publish(List<ServiceConfig<?>> serviceConfigList) {
     for (ServiceConfig<?> serviceConfig : serviceConfigList) {
       registry.register(serviceConfig);
     }
@@ -140,8 +142,9 @@ public class MyRpcBootStrap {
    * 启动netty服务
    */
   public void start() {
-
+    // 处理连接
     NioEventLoopGroup boss = new NioEventLoopGroup();
+    // 处理io
     NioEventLoopGroup work = new NioEventLoopGroup();
 
     try {
@@ -153,9 +156,7 @@ public class MyRpcBootStrap {
       // 返回的结果
       ChannelFuture channelFuture = serverBootstrap.bind(NetConstant.PORT).sync();
       log.info("netty已经连接绑定--->{}",NetConstant.PORT);
-
       channelFuture.channel().closeFuture().sync();
-
     } catch (InterruptedException e) {
       throw new RuntimeException(e);
     }
@@ -170,7 +171,7 @@ public class MyRpcBootStrap {
    * @return 当前实例
    */
   public MyRpcBootStrap reference(ReferenceConfig<?> referenceConfig) {
-    // 配置reference,调用get()，生成代理对象
+    //放入注册中心实例
     referenceConfig.setRegistry(registry);
 
     return this;

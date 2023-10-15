@@ -48,13 +48,13 @@ public class RpcConsumerInvocationHandler implements InvocationHandler {
     {
 
       // 代理的操作
-      // todo 如何合理选择一个可用服务发送请求，本地缓存拉取服务列表
-      // 2.拉取服务列表
+      //todo 如何合理选择一个可用服务发送请求，本地缓存拉取服务列表
+      //2.拉取服务列表
       String serviceName = getInterfaces()[0].getName();
       InetSocketAddress ipAndPort = registry.lookup(serviceName);
       log.info("{} 拉取的服务地址为----》{}", serviceName, ipAndPort);
 
-      // 3.通过地址连接拿到一个可用channel
+      // 3.通过地址连接netty,并且拿到一个可用channel
       Channel channel = getAvailableChannel(ipAndPort);
       log.info("获得了channel{}", channel);
 
@@ -74,11 +74,13 @@ public class RpcConsumerInvocationHandler implements InvocationHandler {
               .serializeType((byte) 1)
               .requestPayload(requestPayload).build();
 
-      // 4.发送请求,携带信息（接口，参数列表) 通过channel发送
+      // 4.发送请求,携带信息（接口，参数列表)
       CompletableFuture<Object> completableFuture = new CompletableFuture<>();
+      // 放入缓存让channelHandler异步调用发送的结果
       MyRpcBootStrap.PENDING_REQUEST.put(1L, completableFuture);
-      // 异步发送
+      // 异步发送报文
       channel.writeAndFlush(rpcRequest).addListener((ChannelFutureListener) promise -> {
+        // 如果失败
         if (!promise.isSuccess()) {
           completableFuture.completeExceptionally(promise.cause());
           throw new NetException("promise未成功异常");
@@ -90,18 +92,22 @@ public class RpcConsumerInvocationHandler implements InvocationHandler {
   }
 
   /**
-   * 通过地址连接拿到一个可用channel
+   * 通过地址连接netty,并且拿到一个可用channel
    * @param ipAndPort 服务列表的地址
    * @return channel
    */
   private Channel getAvailableChannel(InetSocketAddress ipAndPort) {
+
     Channel channel = MyRpcBootStrap.CHANNEL_CACHE.get(ipAndPort);
     if (channel == null) {
+      // 拿到netty客户端实例
       Bootstrap bootstrap = NettyBootStrapInitializer.getBootstrap();
       // --------------------异步------------
       CompletableFuture<Channel> completableFuture = new CompletableFuture<>();
+      // netty连接
       bootstrap.connect(ipAndPort).addListener((ChannelFutureListener) promise -> {
         if (promise.isDone()) {
+          // channel放入completableFuture
           completableFuture.complete(promise.channel());
           log.info("{}建立连接", ipAndPort);
         } else if (!promise.isDone()) {
@@ -110,6 +116,7 @@ public class RpcConsumerInvocationHandler implements InvocationHandler {
         }
       });
       try {
+        // 阻塞获得channel,等待上方complete成功
         channel = completableFuture.get(3, TimeUnit.SECONDS);
       } catch (InterruptedException | ExecutionException | TimeoutException e) {
         log.error("获取channel异常", e);

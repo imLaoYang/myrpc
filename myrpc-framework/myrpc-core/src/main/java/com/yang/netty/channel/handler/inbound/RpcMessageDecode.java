@@ -1,5 +1,6 @@
 package com.yang.netty.channel.handler.inbound;
 
+import com.yang.exception.RpcMessageException;
 import com.yang.transport.message.MessageFormatConstant;
 import com.yang.transport.message.RequestPayload;
 import com.yang.transport.message.RequestType;
@@ -7,12 +8,14 @@ import com.yang.transport.message.RpcRequest;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.*;
 
 /**
  * 解码器
  */
+@Slf4j
 public class RpcMessageDecode extends LengthFieldBasedFrameDecoder {
   public RpcMessageDecode() {
     super(
@@ -46,14 +49,14 @@ public class RpcMessageDecode extends LengthFieldBasedFrameDecoder {
     byteBuf.readBytes(magic);
     for (int i = 0; i < magic.length; i++) {
       if (magic[i] != MessageFormatConstant.MAGIC[i]) {
-        throw new RuntimeException("magic不匹配");
+        throw new RpcMessageException("magic不匹配");
       }
     }
 
     // 2.检查版本号
     byte version = byteBuf.readByte();
     if (version > MessageFormatConstant.VERSION) {
-      throw new RuntimeException("version不支持");
+      throw new RpcMessageException("version不支持");
     }
     // 3.解析头部长度
     short headLength = byteBuf.readShort();
@@ -94,7 +97,8 @@ public class RpcMessageDecode extends LengthFieldBasedFrameDecoder {
       RequestPayload requestPayload = (RequestPayload) objectInputStream.readObject();
       rpcRequest.setRequestPayload(requestPayload);
     } catch (IOException | ClassNotFoundException e) {
-      throw new RuntimeException("反序列化异常");
+      log.error("反序列化异常",e);
+      throw new RpcMessageException("反序列化异常",e);
     }
 
     return rpcRequest;

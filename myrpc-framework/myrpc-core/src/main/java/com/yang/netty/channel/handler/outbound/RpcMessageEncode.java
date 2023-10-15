@@ -1,5 +1,6 @@
 package com.yang.netty.channel.handler.outbound;
 
+import com.yang.exception.RpcMessageException;
 import com.yang.transport.message.MessageFormatConstant;
 import com.yang.transport.message.RequestPayload;
 import com.yang.transport.message.RpcRequest;
@@ -75,7 +76,7 @@ public class RpcMessageEncode extends MessageToByteEncoder<RpcRequest> {
       return byteArray.toByteArray();
     } catch (IOException e) {
       log.info("序列化异常", e);
-      throw new RuntimeException(e);
+      throw new RpcMessageException("序列化异常",e);
     }
   }
 
