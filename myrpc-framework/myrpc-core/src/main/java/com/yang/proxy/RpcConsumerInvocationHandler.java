@@ -1,11 +1,12 @@
 package com.yang.proxy;
 
 import com.yang.MyRpcBootStrap;
-import com.yang.NettyBootStrapInitializer;
 import com.yang.discovery.Registry;
 import com.yang.exception.NetException;
+import com.yang.netty.NettyBootStrapInitializer;
+import com.yang.serialize.SerializerFactory;
 import com.yang.transport.message.RequestPayload;
-import com.yang.transport.message.RequestType;
+import com.yang.enums.RequestType;
 import com.yang.transport.message.RpcRequest;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
@@ -30,7 +31,7 @@ import java.util.concurrent.TimeoutException;
 @Slf4j
 @AllArgsConstructor
 public class RpcConsumerInvocationHandler implements InvocationHandler {
-
+  // 注册中心
   private Registry registry;
   private Class<?>[] interfaces;
 
@@ -67,13 +68,14 @@ public class RpcConsumerInvocationHandler implements InvocationHandler {
 
 
       // todo 请求,类型处理
+      byte serializeType = SerializerFactory.getSerializer(MyRpcBootStrap.SERIALIZE_TYPE).getSerializeType().getCode();
       long requestId = MyRpcBootStrap.REQUEST_ID.nextId();
       log.info("发送的requestId---->{}",requestId);
       RpcRequest rpcRequest = RpcRequest.builder()
               .requestId(requestId)
               .requestType(RequestType.REQUEST.getId())
               .compressType((byte) 1)
-              .serializeType((byte) 1)
+              .serializeType(serializeType)
               .requestPayload(requestPayload).build();
 
       // 4.发送请求,携带信息（接口，参数列表)

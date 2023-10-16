@@ -1,16 +1,13 @@
-package com.yang.netty.channel.handler.outbound;
+package com.yang.netty.handler.outbound;
 
-import com.yang.exception.RpcMessageException;
+import com.yang.serialize.Serializer;
+import com.yang.serialize.SerializerFactory;
 import com.yang.transport.message.MessageFormatConstant;
 import com.yang.transport.message.RpcResponse;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToByteEncoder;
 import lombok.extern.slf4j.Slf4j;
-
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
 
 /**
  * Provider出站时响应编码
@@ -38,9 +35,11 @@ public class RpcResponseEncode extends MessageToByteEncoder<RpcResponse> {
     byteBuf.writeLong(RpcResponse.getRequestId());
 
     // todo 心跳请求没有body
+    // 序列化工厂拿到序列化器
+    Serializer serializer = SerializerFactory.getSerializer(RpcResponse.getSerializeType()).getSerializer();
     byte[] body = null;
     if (RpcResponse.getBody() != null) {
-      body = getBodyBytes(RpcResponse.getBody());
+      body = serializer.serialize(RpcResponse.getBody());
       // 写入body
       byteBuf.writeBytes(body);
     }
@@ -55,27 +54,6 @@ public class RpcResponseEncode extends MessageToByteEncoder<RpcResponse> {
     byteBuf.writeInt(MessageFormatConstant.HEADER_LENGTH + bodyLength);
     // 指针归位
     byteBuf.writerIndex(index);
-  }
-
-
-  /**
-   * 序列化body
-   *
-   * @param body 方法响应的内容
-   * @return byte数组
-   */
-  private byte[] getBodyBytes(Object body) {
-    try {
-      ByteArrayOutputStream byteArray = new ByteArrayOutputStream();
-      ObjectOutputStream objectOutputStream = new ObjectOutputStream(byteArray);
-      objectOutputStream.writeObject(body);
-      // TODO 压缩
-
-      return byteArray.toByteArray();
-    } catch (IOException e) {
-      log.info("序列化异常", e);
-      throw new RpcMessageException("序列化异常",e);
-    }
   }
 
 }

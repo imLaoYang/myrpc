@@ -1,16 +1,16 @@
-package com.yang.netty.channel.handler.inbound;
+package com.yang.netty.handler.inbound;
 
 import com.yang.exception.RpcMessageException;
+import com.yang.serialize.Serializer;
+import com.yang.serialize.SerializerFactory;
 import com.yang.transport.message.MessageFormatConstant;
 import com.yang.transport.message.RequestPayload;
-import com.yang.transport.message.RequestType;
+import com.yang.enums.RequestType;
 import com.yang.transport.message.RpcRequest;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import lombok.extern.slf4j.Slf4j;
-
-import java.io.*;
 
 /**
  * Provider进站时的解码器
@@ -81,7 +81,7 @@ public class RpcRequestDecode extends LengthFieldBasedFrameDecoder {
     rpcRequest.setSerializeType(serializeType);
 
     // 心跳检测请求没有body
-    if (requestType == RequestType.HEART.getId()){
+    if (requestType == RequestType.HEART.getId()) {
       return rpcRequest;
     }
 
@@ -91,16 +91,14 @@ public class RpcRequestDecode extends LengthFieldBasedFrameDecoder {
     byteBuf.readBytes(body);
     // todo 解压缩
 
+
+    // 序列化工厂拿到序列化器
+    Serializer serializer = SerializerFactory.getSerializer(serializeType).getSerializer();
     // 反序列化
-    try {
-      ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(body);
-      ObjectInputStream objectInputStream = new ObjectInputStream(byteArrayInputStream);
-      RequestPayload requestPayload = (RequestPayload) objectInputStream.readObject();
-      rpcRequest.setRequestPayload(requestPayload);
-    } catch (IOException | ClassNotFoundException e) {
-      log.error("反序列化异常",e);
-      throw new RpcMessageException("反序列化异常",e);
-    }
+    RequestPayload requestPayload = serializer.deserialize(body, RequestPayload.class);
+    // 设置payload
+    rpcRequest.setRequestPayload(requestPayload);
+
 
     return rpcRequest;
   }

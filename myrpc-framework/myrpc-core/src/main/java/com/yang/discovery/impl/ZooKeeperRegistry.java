@@ -1,7 +1,7 @@
 package com.yang.discovery.impl;
 
 import com.yang.config.ServiceConfig;
-import com.yang.constant.Constant;
+import com.yang.constant.ZookeeperConstant;
 import com.yang.constant.NetConstant;
 import com.yang.discovery.AbstractRegistry;
 import com.yang.exception.RegistryException;
@@ -34,7 +34,7 @@ public class ZooKeeperRegistry extends AbstractRegistry {
   }
 
   public ZooKeeperRegistry(String connection) {
-    this.zooKeeper = ZooKeeperUtils.connection(connection, Constant.TIMEOUT);
+    this.zooKeeper = ZooKeeperUtils.connection(connection, ZookeeperConstant.TIMEOUT);
   }
 
   public ZooKeeperRegistry(String connection, int timeout) {
@@ -50,7 +50,7 @@ public class ZooKeeperRegistry extends AbstractRegistry {
   @Override
   public void register(ServiceConfig<?> serviceConfig) {
     // 1.创建主节点
-    String parentNode = Constant.DEFAULT_PROVIDER_PATH + "/" + serviceConfig.getInterfaces().getName();
+    String parentNode = ZookeeperConstant.DEFAULT_PROVIDER_PATH + "/" + serviceConfig.getInterfaces().getName();
     if (!ZooKeeperUtils.exists(zooKeeper, parentNode, null)) {
       ZooKeeperNode zookeeperNode = new ZooKeeperNode(parentNode, null);
       ZooKeeperUtils.createNode(zooKeeper, zookeeperNode, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT, null);
@@ -74,7 +74,7 @@ public class ZooKeeperRegistry extends AbstractRegistry {
   @Override
   public void register(ServiceConfig<?> serviceConfig, int port) {
     // 1.创建主节点
-    String parentNode = Constant.DEFAULT_PROVIDER_PATH + "/" + serviceConfig.getInterfaces().getName();
+    String parentNode = ZookeeperConstant.DEFAULT_PROVIDER_PATH + "/" + serviceConfig.getInterfaces().getName();
     if (!ZooKeeperUtils.exists(zooKeeper, parentNode, null)) {
       ZooKeeperNode zookeeperNode = new ZooKeeperNode(parentNode, null);
       ZooKeeperUtils.createNode(zooKeeper, zookeeperNode, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT, null);
@@ -98,7 +98,7 @@ public class ZooKeeperRegistry extends AbstractRegistry {
   @Override
   public InetSocketAddress lookup(String serviceName) {
     // 父路径
-    String path = Constant.DEFAULT_PROVIDER_PATH + "/" + serviceName;
+    String path = ZookeeperConstant.DEFAULT_PROVIDER_PATH + "/" + serviceName;
     List<String> ipAndPort = ZooKeeperUtils.getChildren(zooKeeper, path, null);
     // stream流映射
     List<InetSocketAddress> inetSocketAddresses = ipAndPort.stream().map(item -> {

@@ -1,4 +1,4 @@
-package com.yang.netty.channel.handler.inbound;
+package com.yang.netty.handler.inbound;
 
 import com.yang.MyRpcBootStrap;
 import com.yang.transport.message.RpcResponse;
@@ -8,6 +8,9 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.concurrent.CompletableFuture;
 
+/**
+ * consumer收到响应后处理
+ */
 @Slf4j
 public class ConsumerChannelInboundHandler extends SimpleChannelInboundHandler<RpcResponse> {
   @Override

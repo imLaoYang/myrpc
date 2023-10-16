@@ -1,5 +1,8 @@
-package com.yang.transport.message;
+package com.yang.enums;
 
+/**
+ * RPC响应枚举
+ */
 public enum ResponseCode {
 
   SUCCEED((byte) 1,"成功"),

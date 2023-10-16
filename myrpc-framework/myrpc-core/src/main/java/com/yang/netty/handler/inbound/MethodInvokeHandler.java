@@ -1,9 +1,9 @@
-package com.yang.netty.channel.handler.inbound;
+package com.yang.netty.handler.inbound;
 
 import com.yang.MyRpcBootStrap;
 import com.yang.config.ServiceConfig;
 import com.yang.transport.message.RequestPayload;
-import com.yang.transport.message.ResponseCode;
+import com.yang.enums.ResponseCode;
 import com.yang.transport.message.RpcRequest;
 import com.yang.transport.message.RpcResponse;
 import io.netty.channel.ChannelHandlerContext;

@@ -1,6 +1,6 @@
 package com.yang.constant;
 
-public class Constant {
+public class ZookeeperConstant {
 
   // 超时时间
   public static final Integer TIMEOUT = 100000;

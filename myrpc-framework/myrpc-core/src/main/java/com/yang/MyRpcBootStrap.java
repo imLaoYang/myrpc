@@ -2,10 +2,10 @@ package com.yang;
 
 import com.yang.config.ProtocolConfig;
 import com.yang.config.ReferenceConfig;
+import com.yang.config.RegistryConfig;
 import com.yang.config.ServiceConfig;
 import com.yang.constant.NetConstant;
 import com.yang.discovery.Registry;
-import com.yang.config.RegistryConfig;
 import com.yang.netty.channel.ProviderChannelInitializer;
 import com.yang.utils.IdWorker;
 import io.netty.bootstrap.ServerBootstrap;
@@ -53,10 +53,15 @@ public class MyRpcBootStrap {
   // Netty的channel缓存
   public static final Map<InetSocketAddress, Channel> CHANNEL_CACHE = new ConcurrentHashMap<>(16);
 
+  // 序列协议,默认jdk
+  public static String SERIALIZE_TYPE = "jdk";
+
   // 默认配置信息
   private String applicationName = "default-name";
   private Registry registry;
   private ProtocolConfig protocolConfig;
+
+
 
 
   private MyRpcBootStrap() {
@@ -96,8 +101,8 @@ public class MyRpcBootStrap {
    * @return 当前实例
    */
   public MyRpcBootStrap protocol(ProtocolConfig protocolConfig) {
-    this.protocolConfig = protocolConfig;
-    log.info("使用{}协议进行序列化", protocolConfig.getProtocolName());
+    SERIALIZE_TYPE = protocolConfig.getSerializeType().getType();
+    log.info("使用{}协议进行序列化", protocolConfig.getSerializeType().getType());
     return this;
   }
 
@@ -179,4 +184,15 @@ public class MyRpcBootStrap {
 
     return this;
   }
+
+//  /**
+//   * 指定序列化协议类型
+//   * @param type 序列化协议类型
+//   * @return this
+//   */
+//  public MyRpcBootStrap serializer(String type){
+//    SERIALIZE_TYPE = type;
+//    return this;
+//  }
+
 }

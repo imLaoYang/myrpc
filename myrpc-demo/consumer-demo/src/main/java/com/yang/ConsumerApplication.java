@@ -1,7 +1,7 @@
 package com.yang;
 
 import com.yang.config.ReferenceConfig;
-import com.yang.constant.Constant;
+import com.yang.constant.ZookeeperConstant;
 import com.yang.config.RegistryConfig;
 
 public class ConsumerApplication {
@@ -13,7 +13,7 @@ public class ConsumerApplication {
 
 
     MyRpcBootStrap.getInstance()
-            .registry(new RegistryConfig(Constant.DEFAULT_ZK_CONNECTION)) // 注册服务
+            .registry(new RegistryConfig(ZookeeperConstant.DEFAULT_ZK_CONNECTION)) // 注册服务
             .reference(referenceConfig);
 
     // 获取一个代理对象

@@ -1,5 +1,8 @@
-package com.yang.transport.message;
+package com.yang.enums;
 
+/**
+ * RPC请求枚举
+ */
 public enum RequestType {
 
   REQUEST((byte) 1, "普通请求"),

@@ -1,6 +1,6 @@
 package com.yang.utils.zooKeeper;
 
-import com.yang.constant.Constant;
+import com.yang.constant.ZookeeperConstant;
 import com.yang.constant.NetConstant;
 import com.yang.exception.ZookeeperException;
 import lombok.extern.slf4j.Slf4j;
@@ -25,7 +25,7 @@ public class ZooKeeperUtils {
    */
   public static ZooKeeper connection() {
     String connection = NetConstant.DEFAULT_CONNECTION;
-    Integer timeout = Constant.TIMEOUT;
+    Integer timeout = ZookeeperConstant.TIMEOUT;
 
     return connection(connection, timeout);
   }

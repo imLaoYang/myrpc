@@ -1,17 +1,13 @@
-package com.yang.netty.channel.handler.outbound;
+package com.yang.netty.handler.outbound;
 
-import com.yang.exception.RpcMessageException;
+import com.yang.serialize.Serializer;
+import com.yang.serialize.SerializerFactory;
 import com.yang.transport.message.MessageFormatConstant;
-import com.yang.transport.message.RequestPayload;
 import com.yang.transport.message.RpcRequest;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToByteEncoder;
 import lombok.extern.slf4j.Slf4j;
-
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
 
 /**
  * 功能：将请求封装成报文
@@ -39,10 +35,12 @@ public class RpcRequestEncode extends MessageToByteEncoder<RpcRequest> {
     // 8 requestId
     byteBuf.writeLong(rpcRequest.getRequestId());
 
+    // 序列化工厂拿到指定的序列化器
+    Serializer serializer = SerializerFactory.getSerializer(rpcRequest.getSerializeType()).getSerializer();
     // 心跳请求没有body
     byte[] body = null;
     if (rpcRequest.getRequestPayload() != null) {
-      body = getBodyBytes(rpcRequest.getRequestPayload());
+      body = serializer.serialize(rpcRequest.getRequestPayload());
       // 写入body
       byteBuf.writeBytes(body);
     }
@@ -59,25 +57,5 @@ public class RpcRequestEncode extends MessageToByteEncoder<RpcRequest> {
     byteBuf.writerIndex(index);
   }
 
-
-  /**
-   * 序列化body
-   *
-   * @param requestPayload body
-   * @return byte数组
-   */
-  private byte[] getBodyBytes(RequestPayload requestPayload) {
-    try {
-      ByteArrayOutputStream byteArray = new ByteArrayOutputStream();
-      ObjectOutputStream objectOutputStream = new ObjectOutputStream(byteArray);
-      objectOutputStream.writeObject(requestPayload);
-      // TODO 压缩
-
-      return byteArray.toByteArray();
-    } catch (IOException e) {
-      log.info("序列化异常", e);
-      throw new RpcMessageException("序列化异常",e);
-    }
-  }
 
 }

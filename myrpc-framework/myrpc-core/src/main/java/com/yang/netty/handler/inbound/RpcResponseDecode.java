@@ -1,15 +1,14 @@
-package com.yang.netty.channel.handler.inbound;
+package com.yang.netty.handler.inbound;
 
 import com.yang.exception.RpcMessageException;
-import com.yang.transport.message.*;
+import com.yang.serialize.Serializer;
+import com.yang.serialize.SerializerFactory;
+import com.yang.transport.message.MessageFormatConstant;
+import com.yang.transport.message.RpcResponse;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import lombok.extern.slf4j.Slf4j;
-
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
 
 /**
  * Consumer收到响应进站时的解码器
@@ -90,15 +89,12 @@ public class RpcResponseDecode extends LengthFieldBasedFrameDecoder {
     // todo 解压缩
 
     // 反序列化
-    try {
-      ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(body);
-      ObjectInputStream objectInputStream = new ObjectInputStream(byteArrayInputStream);
-      Object returnBody =  objectInputStream.readObject();
-      rpcResponse.setBody(returnBody);
-    } catch (IOException | ClassNotFoundException e) {
-      log.error("反序列化异常",e);
-      throw new RpcMessageException("反序列化异常",e);
-    }
+    // 序列化工厂拿到序列化器
+    Serializer serializer = SerializerFactory.getSerializer(serializeType).getSerializer();
+    // 反序列化
+    Object returnBody = serializer.deserialize(body, Object.class);
+    // 设置返回参数
+    rpcResponse.setBody(returnBody);
 
     return rpcResponse;
   }

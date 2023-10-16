@@ -1,4 +1,4 @@
-package com.yang.netty.channel.handler.inbound;
+package com.yang.netty.handler.inbound;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
