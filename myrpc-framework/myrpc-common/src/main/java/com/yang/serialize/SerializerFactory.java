@@ -28,10 +28,12 @@ public class SerializerFactory {
     SerializerWrapper hessianSerializer = new SerializerWrapper(SerializeType.HESSIAN, new HessianSerializer());
 
     // 注入缓存
-    SERIALIZER_CACHE.put(SerializeType.JDK.getType(), jdkSerializer);
-    SERIALIZER_CACHE.put(SerializeType.HESSIAN.getType(), hessianSerializer);
+    // Jdk
     SERIALIZER_CACHE_CODE.put(SerializeType.JDK.getCode(), jdkSerializer);
+    SERIALIZER_CACHE.put(SerializeType.JDK.getType(), jdkSerializer);
+    // Hessian
     SERIALIZER_CACHE_CODE.put(SerializeType.HESSIAN.getCode(), hessianSerializer);
+    SERIALIZER_CACHE.put(SerializeType.HESSIAN.getType(), hessianSerializer);
   }
 
   /**
