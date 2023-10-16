@@ -10,7 +10,6 @@ public class DemoTest {
 
   @Test
   public void demo1() {
-
     Set<Object> hashSet = new HashSet<>();
   }
 }
