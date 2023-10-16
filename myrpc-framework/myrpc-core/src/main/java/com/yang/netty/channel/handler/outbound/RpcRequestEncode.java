@@ -15,10 +15,10 @@ import java.io.ObjectOutputStream;
 
 /**
  * 功能：将请求封装成报文
- * 这是出站时pipeline走的channelHandler
+ * Consumer出站时pipeline走的channelHandler
  */
 @Slf4j
-public class RpcMessageEncode extends MessageToByteEncoder<RpcRequest> {
+public class RpcRequestEncode extends MessageToByteEncoder<RpcRequest> {
 
   @Override
   protected void encode(ChannelHandlerContext ctx, RpcRequest rpcRequest, ByteBuf byteBuf) {

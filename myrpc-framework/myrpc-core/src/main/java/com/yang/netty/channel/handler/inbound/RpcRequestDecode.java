@@ -13,11 +13,12 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.*;
 
 /**
- * 解码器
+ * Provider进站时的解码器
+ * 解析报文
  */
 @Slf4j
-public class RpcMessageDecode extends LengthFieldBasedFrameDecoder {
-  public RpcMessageDecode() {
+public class RpcRequestDecode extends LengthFieldBasedFrameDecoder {
+  public RpcRequestDecode() {
     super(
             // 最大帧长，超出这个值直接丢弃
             MessageFormatConstant.LENGTH.MAX_FRAME_LENGTH,
@@ -88,7 +89,7 @@ public class RpcMessageDecode extends LengthFieldBasedFrameDecoder {
     int bodyLength = fullLength - headLength;
     byte[] body = new byte[bodyLength];
     byteBuf.readBytes(body);
-    // 解压缩
+    // todo 解压缩
 
     // 反序列化
     try {

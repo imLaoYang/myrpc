@@ -3,7 +3,8 @@ package com.yang.netty.channel;
 
 import com.yang.exception.NetException;
 import com.yang.netty.channel.handler.inbound.ConsumerChannelInboundHandler;
-import com.yang.netty.channel.handler.outbound.RpcMessageEncode;
+import com.yang.netty.channel.handler.inbound.RpcResponseDecode;
+import com.yang.netty.channel.handler.outbound.RpcRequestEncode;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.SocketChannel;
@@ -25,8 +26,10 @@ public class ConsumerChannelInitializer extends ChannelInitializer<SocketChannel
     ch.pipeline()
             // 日志处理器
             .addLast(new LoggingHandler())
-            // 编码器
-            .addLast(new RpcMessageEncode())
+            // 发送请求时的编码器
+            .addLast(new RpcRequestEncode())
+            // 收到Provider响应后的解码器
+            .addLast(new RpcResponseDecode())
             .addLast(new ConsumerChannelInboundHandler());
 
   }

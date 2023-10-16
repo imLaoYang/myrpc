@@ -67,8 +67,10 @@ public class RpcConsumerInvocationHandler implements InvocationHandler {
 
 
       // todo 请求,类型处理
+      long requestId = MyRpcBootStrap.REQUEST_ID.nextId();
+      log.info("发送的requestId---->{}",requestId);
       RpcRequest rpcRequest = RpcRequest.builder()
-              .requestId(1L)
+              .requestId(requestId)
               .requestType(RequestType.REQUEST.getId())
               .compressType((byte) 1)
               .serializeType((byte) 1)
@@ -77,7 +79,7 @@ public class RpcConsumerInvocationHandler implements InvocationHandler {
       // 4.发送请求,携带信息（接口，参数列表)
       CompletableFuture<Object> completableFuture = new CompletableFuture<>();
       // 放入缓存让channelHandler异步调用发送的结果
-      MyRpcBootStrap.PENDING_REQUEST.put(1L, completableFuture);
+      MyRpcBootStrap.PENDING_REQUEST.put(requestId, completableFuture);
       // 异步发送报文
       channel.writeAndFlush(rpcRequest).addListener((ChannelFutureListener) promise -> {
         // 如果失败

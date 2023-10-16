@@ -7,6 +7,7 @@ import com.yang.constant.NetConstant;
 import com.yang.discovery.Registry;
 import com.yang.config.RegistryConfig;
 import com.yang.netty.channel.ProviderChannelInitializer;
+import com.yang.utils.IdWorker;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -32,13 +33,15 @@ public class MyRpcBootStrap {
   // 饿汉单例
   private static final MyRpcBootStrap myRpcBootStrap = new MyRpcBootStrap();
 
+  // 雪花ID,用作请求id
+  public static final IdWorker REQUEST_ID = new IdWorker(0,0);
+
   /*
    * 远程调用返回的结果，全局挂起的CompletableFuture
    * key 请求的标识
    * value CompletableFuture
    */
   public static final Map<Long, CompletableFuture<Object>> PENDING_REQUEST = new ConcurrentHashMap<>(128);
-
 
   /**
    *  已发布的服务列表
