@@ -15,6 +15,7 @@ import java.io.IOException;
  */
 @Slf4j
 public class HessianSerializer implements Serializer {
+
   @Override
   public byte[] serialize(Object object) {
     if (object == null) {

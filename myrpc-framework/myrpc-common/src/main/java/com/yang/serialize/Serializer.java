@@ -7,14 +7,14 @@ public interface Serializer {
   /**
    * 序列化
    * @param o 序列化对象
-   * @return 二进制byte数组
+   * @return byte数组
    */
   byte[] serialize(Object o);
 
   /**
    * 反序列化
    *
-   * @param bytes 二进制byte数组
+   * @param bytes byte数组
    * @param clazz
    * @return 序列化对象
    */

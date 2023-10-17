@@ -15,7 +15,7 @@ public class JdkSerializer implements Serializer {
    * 序列化
    *
    * @param object 序列化对象
-   * @return 二进制byte数组
+   * @return byte数组
    */
   @Override
   public byte[] serialize(Object object) {
@@ -41,7 +41,7 @@ public class JdkSerializer implements Serializer {
   /**
    * 反序列化
    *
-   * @param bytes 二进制byte数组
+   * @param bytes byte数组
    * @param clazz 序列化类
    * @return
    */
