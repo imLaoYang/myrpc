@@ -59,7 +59,7 @@ public class GzipCompressor implements Compressor {
       byte[] buff = new byte[BUFFER_SIZE];
       int n;
       while (( n = gzip.read(buff) ) > -1){
-        outputStream.write(bytes,0,n);
+        outputStream.write(buff,0,n);
       }
       return outputStream.toByteArray();
     } catch (IOException e) {

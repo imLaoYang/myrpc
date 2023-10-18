@@ -1,8 +1,8 @@
 package com.yang.discovery.impl;
 
 import com.yang.config.ServiceConfig;
-import com.yang.constant.ZookeeperConstant;
 import com.yang.constant.NetConstant;
+import com.yang.constant.ZookeeperConstant;
 import com.yang.discovery.AbstractRegistry;
 import com.yang.exception.RegistryException;
 import com.yang.utils.NetUtils;
@@ -58,6 +58,7 @@ public class ZooKeeperRegistry extends AbstractRegistry {
 
     // 2.创建临时节点
     String ip = NetUtils.getLocalIpByNetCard();
+
     String tempNode = parentNode + "/" + ip + ":" + NetConstant.PORT;
     if (!ZooKeeperUtils.exists(zooKeeper, tempNode, null)) {
       ZooKeeperNode zookeeperNode = new ZooKeeperNode(tempNode, null);
@@ -80,6 +81,7 @@ public class ZooKeeperRegistry extends AbstractRegistry {
       ZooKeeperUtils.createNode(zooKeeper, zookeeperNode, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT, null);
     }
 
+
     // 2.创建临时节点
     String ip = NetUtils.getLocalIpByNetCard();
     String tempNode = parentNode + "/" + ip + ":" + port;
@@ -92,11 +94,12 @@ public class ZooKeeperRegistry extends AbstractRegistry {
 
   /**
    * 拿到注册中心的ip列表
+   *
    * @param serviceName 接口路径
    * @return ip
    */
   @Override
-  public InetSocketAddress lookup(String serviceName) {
+  public List<InetSocketAddress> lookup(String serviceName) {
     // 父路径
     String path = ZookeeperConstant.DEFAULT_PROVIDER_PATH + "/" + serviceName;
     List<String> ipAndPort = ZooKeeperUtils.getChildren(zooKeeper, path, null);
@@ -112,7 +115,7 @@ public class ZooKeeperRegistry extends AbstractRegistry {
       throw new RegistryException("找不到可用服务列表:" + serviceName);
     }
 
-    return inetSocketAddresses.get(0);
+    return inetSocketAddresses;
   }
 
 

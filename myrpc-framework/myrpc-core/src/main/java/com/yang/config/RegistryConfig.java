@@ -21,7 +21,6 @@ public class RegistryConfig  {
    */
   private String url;
 
-
   /**
    * 功能：获得某个注册中心的具体实例
    * 设计模式：简单工厂

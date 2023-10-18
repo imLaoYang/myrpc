@@ -1,5 +1,7 @@
 package com.yang.netty.handler.inbound;
 
+import com.yang.compress.Compressor;
+import com.yang.compress.CompressorFactory;
 import com.yang.exception.RpcMessageException;
 import com.yang.serialize.Serializer;
 import com.yang.serialize.SerializerFactory;
@@ -17,17 +19,21 @@ import lombok.extern.slf4j.Slf4j;
 public class RpcResponseDecode extends LengthFieldBasedFrameDecoder {
   public RpcResponseDecode() {
     super(
-            // 最大帧长，超出这个值直接丢弃
+            // 最大帧长，超出这个值直接丢弃(发送的数据包最大长度)
             MessageFormatConstant.LENGTH.MAX_FRAME_LENGTH,
-            // 最大长度偏移量，要偏移多少int才能找到full length
+            // 最大长度偏移量，要偏移多少int才能找到full length(长度域偏移量)
             MessageFormatConstant.LENGTH.MAGIC_LENGTH + MessageFormatConstant.LENGTH.VERSION_LENGTH + MessageFormatConstant.LENGTH.HEADER_LENGTH,
-            // full length的长度
+            // full length的长度(长度域的自己的字节数长度)
             MessageFormatConstant.LENGTH.FULL_LENGTH,
-            // 拿到body
+            // 拿到body( 长度域的偏移量矫正)
             -(MessageFormatConstant.LENGTH.MAGIC_LENGTH + MessageFormatConstant.LENGTH.VERSION_LENGTH + MessageFormatConstant.LENGTH.HEADER_LENGTH + MessageFormatConstant.LENGTH.FULL_LENGTH),
-            // 需要跳过的字段
+            // 丢弃的起始字节数
             0);
   }
+
+
+
+
 
 
   @Override
@@ -86,13 +92,17 @@ public class RpcResponseDecode extends LengthFieldBasedFrameDecoder {
     int bodyLength = fullLength - headLength;
     byte[] body = new byte[bodyLength];
     byteBuf.readBytes(body);
-    // todo 解压缩
+    // 解压缩
+    log.info("解压之前字节-->{}",body.length);
+    Compressor compressor = CompressorFactory.getCompressWrapper(compressType).getCompressor();
+    byte[] decompressBody = compressor.decompress(body);
+    log.info("解压之后字节-->{}",decompressBody.length);
 
     // 反序列化
     // 序列化工厂拿到序列化器
     Serializer serializer = SerializerFactory.getSerializer(serializeType).getSerializer();
     // 反序列化
-    Object returnBody = serializer.deserialize(body, Object.class);
+    Object returnBody = serializer.deserialize(decompressBody, Object.class);
     // 设置返回参数
     rpcResponse.setBody(returnBody);
 

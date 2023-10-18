@@ -3,6 +3,7 @@ package com.yang;
 import com.yang.config.ReferenceConfig;
 import com.yang.constant.ZookeeperConstant;
 import com.yang.config.RegistryConfig;
+import com.yang.enums.CompressType;
 import com.yang.enums.SerializeType;
 
 public class ConsumerApplication {
@@ -17,12 +18,17 @@ public class ConsumerApplication {
             .registry(new RegistryConfig(ZookeeperConstant.DEFAULT_ZK_CONNECTION))
             // 序列化协议
             .serializer(SerializeType.HESSIAN)
+            // 压缩类型
+            .compress(CompressType.GZIP)
             // 注册服务
             .reference(referenceConfig);
 
     // 获取一个代理对象
-    TestService testService = referenceConfig.get();
-    String proxy = testService.test("12");
-    System.out.println(proxy);
+    for (int i = 0; i < 5; i++) {
+
+      TestService testService = referenceConfig.get();
+      String proxy = testService.test("12");
+      System.out.println(proxy);
+    }
   }
 }

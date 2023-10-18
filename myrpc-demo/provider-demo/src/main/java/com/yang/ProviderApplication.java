@@ -16,7 +16,7 @@ public class ProviderApplication {
     // 启动类
     MyRpcBootStrap.getInstance()
             .application("First") // 设置实例名称
-            .registry(new RegistryConfig(ZookeeperConstant.DEFAULT_ZK_CONNECTION)) // 配置注册中心
+            .registry(new RegistryConfig(ZookeeperConstant.DEFAULT_ZK_CONNECTION))
 //            .protocol(new ProtocolConfig(SerializeType.HESSIAN)) // 定义序列化协议
             .publish(serviceConfig) // 发布服务，将接口、实现注册到匹配的注册中心
             .start();  // 启动netty

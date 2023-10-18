@@ -1,5 +1,7 @@
 package com.yang.netty.handler.outbound;
 
+import com.yang.compress.Compressor;
+import com.yang.compress.CompressorFactory;
 import com.yang.serialize.Serializer;
 import com.yang.serialize.SerializerFactory;
 import com.yang.transport.message.MessageFormatConstant;
@@ -40,9 +42,19 @@ public class RpcResponseEncode extends MessageToByteEncoder<RpcResponse> {
     byte[] body = null;
     if (RpcResponse.getBody() != null) {
       body = serializer.serialize(RpcResponse.getBody());
+
+      // 压缩
+      log.info("压缩之前大小--->{}",body.length);
+      Compressor compressor = CompressorFactory.getCompressWrapper(RpcResponse.getCompressType()).getCompressor();
+      body = compressor.compress(body);
+      log.info("压缩之后大小--->{}",body.length);
+
+
       // 写入body
       byteBuf.writeBytes(body);
     }
+
+
 
     // full length
     int bodyLength = body == null ? 0 : body.length;

@@ -30,7 +30,7 @@ public class ReferenceConfig<T> {
 
     ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
     Class[] interfaces = new Class[]{this.interfaces};
-    Object proxyInstance = Proxy.newProxyInstance(classLoader, interfaces, new RpcConsumerInvocationHandler(registry,interfaces));
+    Object proxyInstance = Proxy.newProxyInstance(classLoader, interfaces, new RpcConsumerInvocationHandler(registry,interfaces[0]));
 
     return (T) proxyInstance;
   }

@@ -3,6 +3,7 @@ package com.yang.discovery;
 import com.yang.config.ServiceConfig;
 
 import java.net.InetSocketAddress;
+import java.util.List;
 
 /**
  * 服务注册、发现的接口
@@ -25,9 +26,10 @@ public interface Registry {
 
   /**
    * 从注册中心拉取服务列表
-   * @return ip:port
+   *
+   * @return ip地址
    */
-  InetSocketAddress lookup(String serviceName);
+  List<InetSocketAddress> lookup(String serviceName);
 
 
 }

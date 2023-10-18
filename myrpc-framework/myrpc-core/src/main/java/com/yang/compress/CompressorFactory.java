@@ -35,7 +35,7 @@ public class CompressorFactory {
    * @param type 压缩协议名
    * @return compressor
    */
-  public CompressorWrapper getCompressWrapper(String type){
+  public static CompressorWrapper getCompressWrapper(String type){
     CompressorWrapper compressor = COMPRESS_CACHE.get(type);
     if (compressor == null){
       log.warn("找不到指定协议,使用默认gzip压缩");
@@ -49,7 +49,7 @@ public class CompressorFactory {
    * @param code 压缩编号
    * @return compressor
    */
-  public CompressorWrapper getCompressWrapper(byte code){
+  public static CompressorWrapper getCompressWrapper(byte code){
     CompressorWrapper compressor = COMPRESS_CACHE_CODE.get(code);
     if (compressor == null){
       log.warn("找不到指定协议,使用默认gzip压缩");

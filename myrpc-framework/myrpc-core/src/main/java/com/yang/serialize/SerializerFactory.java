@@ -44,8 +44,8 @@ public class SerializerFactory {
   public static SerializerWrapper getSerializer(String type){
     SerializerWrapper serializer = SERIALIZER_CACHE.get(type);
     if (serializer ==  null){
-      log.warn("找不到序列化器,使用默认jdk序列化");
-      return SERIALIZER_CACHE.get(SerializeType.JDK.getType());
+      log.warn("找不到序列化器,使用默认序列化Hessian");
+      return SERIALIZER_CACHE.get(SerializeType.HESSIAN.getType());
     }
     log.info("使用序列化协议{}",serializer.getSerializeType().getType());
     return serializer;
@@ -59,8 +59,8 @@ public class SerializerFactory {
   public static SerializerWrapper getSerializer(byte code){
     SerializerWrapper serializer = SERIALIZER_CACHE_CODE.get(code);
     if (serializer ==  null){
-      log.warn("找不到序列化器,使用默认jdk序列化");
-      return SERIALIZER_CACHE.get(SerializeType.JDK.getType());
+      log.warn("找不到序列化器,使用默认序列化Hessian");
+      return SERIALIZER_CACHE.get(SerializeType.HESSIAN.getType());
     }
     log.info("使用序列化协议{}",serializer.getSerializeType().getType());
     return serializer;

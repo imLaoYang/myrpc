@@ -1,12 +1,14 @@
 package com.yang.proxy;
 
 import com.yang.MyRpcBootStrap;
+import com.yang.compress.CompressorFactory;
 import com.yang.discovery.Registry;
+import com.yang.enums.RequestType;
 import com.yang.exception.NetException;
+import com.yang.loadbalance.impl.RoundRobin;
 import com.yang.netty.NettyBootStrapInitializer;
 import com.yang.serialize.SerializerFactory;
 import com.yang.transport.message.RequestPayload;
-import com.yang.enums.RequestType;
 import com.yang.transport.message.RpcRequest;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
@@ -33,7 +35,8 @@ import java.util.concurrent.TimeoutException;
 public class RpcConsumerInvocationHandler implements InvocationHandler {
   // 注册中心
   private Registry registry;
-  private Class<?>[] interfaces;
+  // 接口
+  private Class<?> interfaces;
 
 
   /**
@@ -42,26 +45,27 @@ public class RpcConsumerInvocationHandler implements InvocationHandler {
    * @param proxy  代理对象本身
    * @param method 被代理的方法
    * @param args   方法上的参数
-   * @return netty服务端发送的消息
+   * @return 调用方法返回的结果
    */
   @Override
   public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
     {
 
       // 代理的操作
-      //todo 如何合理选择一个可用服务发送请求，本地缓存拉取服务列表
       //2.拉取服务列表
-      String serviceName = getInterfaces()[0].getName();
-      InetSocketAddress ipAndPort = registry.lookup(serviceName);
-      log.info("{} 拉取的服务地址为----》{}", serviceName, ipAndPort);
+      String serviceName = getInterfaces().getName();
+      // 负载均衡:轮询算法拉取可用地址
+      RoundRobin roundRobin = new RoundRobin();
+      InetSocketAddress address = roundRobin.selectServiceAddress(serviceName);
+      log.info("{} 拉取的服务地址为----》{}", serviceName, address);
 
       // 3.通过地址连接netty,并且拿到一个可用channel
-      Channel channel = getAvailableChannel(ipAndPort);
+      Channel channel = getAvailableChannel(address);
       log.info("获得了channel{}", channel);
 
       // 封装报文
       RequestPayload requestPayload = RequestPayload.builder()
-              .interfaceName(getInterfaces()[0].getName())
+              .interfaceName(getInterfaces().getName())
               .methodName(method.getName())
               .parameterTypes(method.getParameterTypes())
               .parameterValue(args).build();
@@ -69,12 +73,13 @@ public class RpcConsumerInvocationHandler implements InvocationHandler {
 
       // todo 请求,类型处理
       byte serializeType = SerializerFactory.getSerializer(MyRpcBootStrap.SERIALIZE_TYPE).getSerializeType().getCode();
+      byte compressType = CompressorFactory.getCompressWrapper(MyRpcBootStrap.COMPRESS_TYPE).getCompressType().getCode();
       long requestId = MyRpcBootStrap.REQUEST_ID.nextId();
       log.info("发送的requestId---->{}",requestId);
       RpcRequest rpcRequest = RpcRequest.builder()
               .requestId(requestId)
               .requestType(RequestType.REQUEST.getId())
-              .compressType((byte) 1)
+              .compressType(compressType)
               .serializeType(serializeType)
               .requestPayload(requestPayload).build();
 
@@ -102,6 +107,7 @@ public class RpcConsumerInvocationHandler implements InvocationHandler {
    */
   private Channel getAvailableChannel(InetSocketAddress ipAndPort) {
 
+    // channel缓存
     Channel channel = MyRpcBootStrap.CHANNEL_CACHE.get(ipAndPort);
     if (channel == null) {
       // 拿到netty客户端实例

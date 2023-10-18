@@ -4,8 +4,8 @@ import com.yang.config.ProtocolConfig;
 import com.yang.config.ReferenceConfig;
 import com.yang.config.RegistryConfig;
 import com.yang.config.ServiceConfig;
-import com.yang.constant.NetConstant;
 import com.yang.discovery.Registry;
+import com.yang.enums.CompressType;
 import com.yang.enums.SerializeType;
 import com.yang.netty.channel.ProviderChannelInitializer;
 import com.yang.utils.IdWorker;
@@ -54,13 +54,18 @@ public class MyRpcBootStrap {
   // Netty的channel缓存
   public static final Map<InetSocketAddress, Channel> CHANNEL_CACHE = new ConcurrentHashMap<>(16);
 
-  // 序列协议,默认jdk
+  // 序列协议
   public static String SERIALIZE_TYPE = "";
+
+  // 压缩协议
+  public static String COMPRESS_TYPE = "";
 
   // 默认配置信息
   private String applicationName = "default-name";
   private Registry registry;
   private ProtocolConfig protocolConfig;
+
+  private int port = 8090;
 
 
 
@@ -129,7 +134,7 @@ public class MyRpcBootStrap {
     // 放入接口和类缓存
     SERVERS_MAP.put(serviceConfig.getInterfaces().getName(),serviceConfig);
     // 向注册中心注册服务
-    registry.register(serviceConfig);
+    registry.register(serviceConfig,port);
 
     return this;
   }
@@ -162,9 +167,10 @@ public class MyRpcBootStrap {
               .channel(NioServerSocketChannel.class)
               .childHandler(new ProviderChannelInitializer());
 
+
       // 返回的结果
-      ChannelFuture channelFuture = serverBootstrap.bind(NetConstant.PORT).sync();
-      log.info("netty已经连接绑定--->{}",NetConstant.PORT);
+      ChannelFuture channelFuture = serverBootstrap.bind(port).sync();
+      log.info("netty已经连接绑定--->{}",port);
       channelFuture.channel().closeFuture().sync();
     } catch (InterruptedException e) {
       throw new RuntimeException(e);
@@ -195,5 +201,22 @@ public class MyRpcBootStrap {
     SERIALIZE_TYPE = serializeType.getType();
     return this;
   }
+
+  /**
+   * 指定压缩
+   * @param compressType 压缩类型枚举类
+   * @return this
+   */
+  public MyRpcBootStrap compress(CompressType compressType){
+    COMPRESS_TYPE = compressType.getType();
+    return this;
+
+  }
+
+  public Registry getRegistry(){
+    return registry;
+  }
+
+
 
 }

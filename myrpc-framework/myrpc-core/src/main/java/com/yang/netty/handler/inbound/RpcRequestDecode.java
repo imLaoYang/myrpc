@@ -1,5 +1,7 @@
 package com.yang.netty.handler.inbound;
 
+import com.yang.compress.Compressor;
+import com.yang.compress.CompressorFactory;
 import com.yang.exception.RpcMessageException;
 import com.yang.serialize.Serializer;
 import com.yang.serialize.SerializerFactory;
@@ -89,13 +91,17 @@ public class RpcRequestDecode extends LengthFieldBasedFrameDecoder {
     int bodyLength = fullLength - headLength;
     byte[] body = new byte[bodyLength];
     byteBuf.readBytes(body);
-    // todo 解压缩
 
+    // 解压缩
+    log.info("解压之前字节-->{}",body.length);
+    Compressor compressor = CompressorFactory.getCompressWrapper(compressType).getCompressor();
+    byte[] decompressBody = compressor.decompress(body);
+    log.info("解压之后字节-->{}",decompressBody.length);
 
     // 序列化工厂拿到序列化器
     Serializer serializer = SerializerFactory.getSerializer(serializeType).getSerializer();
     // 反序列化
-    RequestPayload requestPayload = serializer.deserialize(body, RequestPayload.class);
+    RequestPayload requestPayload = serializer.deserialize(decompressBody, RequestPayload.class);
     // 设置payload
     rpcRequest.setRequestPayload(requestPayload);
 
