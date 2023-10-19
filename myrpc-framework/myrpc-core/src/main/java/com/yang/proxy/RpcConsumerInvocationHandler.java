@@ -5,7 +5,8 @@ import com.yang.compress.CompressorFactory;
 import com.yang.discovery.Registry;
 import com.yang.enums.RequestType;
 import com.yang.exception.NetException;
-import com.yang.loadbalance.impl.RoundRobin;
+import com.yang.loadbalance.LoadBalancer;
+import com.yang.loadbalance.impl.ConsistentHash;
 import com.yang.netty.NettyBootStrapInitializer;
 import com.yang.serialize.SerializerFactory;
 import com.yang.transport.message.RequestPayload;
@@ -49,19 +50,7 @@ public class RpcConsumerInvocationHandler implements InvocationHandler {
    */
   @Override
   public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-    {
 
-      // 代理的操作
-      //2.拉取服务列表
-      String serviceName = getInterfaces().getName();
-      // 负载均衡:轮询算法拉取可用地址
-      RoundRobin roundRobin = new RoundRobin();
-      InetSocketAddress address = roundRobin.selectServiceAddress(serviceName);
-      log.info("{} 拉取的服务地址为----》{}", serviceName, address);
-
-      // 3.通过地址连接netty,并且拿到一个可用channel
-      Channel channel = getAvailableChannel(address);
-      log.info("获得了channel{}", channel);
 
       // 封装报文
       RequestPayload requestPayload = RequestPayload.builder()
@@ -71,7 +60,6 @@ public class RpcConsumerInvocationHandler implements InvocationHandler {
               .parameterValue(args).build();
 
 
-      // todo 请求,类型处理
       byte serializeType = SerializerFactory.getSerializer(MyRpcBootStrap.SERIALIZE_TYPE).getSerializeType().getCode();
       byte compressType = CompressorFactory.getCompressWrapper(MyRpcBootStrap.COMPRESS_TYPE).getCompressType().getCode();
       long requestId = MyRpcBootStrap.REQUEST_ID.nextId();
@@ -82,6 +70,21 @@ public class RpcConsumerInvocationHandler implements InvocationHandler {
               .compressType(compressType)
               .serializeType(serializeType)
               .requestPayload(requestPayload).build();
+
+      // 存储ThreadLocal
+      MyRpcBootStrap.REQUEST_THREAD_LOCAL.set(rpcRequest);
+
+      // 拉取服务列表
+      String serviceName = getInterfaces().getName();
+      // 负载均衡:轮询算法拉取可用地址
+      LoadBalancer consistentHash = new ConsistentHash();
+      InetSocketAddress address = consistentHash.selectServiceAddress(serviceName);
+      log.info("{} 拉取的服务地址为----》{}", serviceName, address);
+
+      // 3.通过地址连接netty,并且拿到一个可用channel
+      Channel channel = getAvailableChannel(address);
+      log.info("获得了channel{}", channel);
+
 
       // 4.发送请求,携带信息（接口，参数列表)
       CompletableFuture<Object> completableFuture = new CompletableFuture<>();
@@ -97,7 +100,7 @@ public class RpcConsumerInvocationHandler implements InvocationHandler {
       });
       // get方法阻塞（拿到的是compete方法的参数），等待complete方法的执行
       return completableFuture.get(5, TimeUnit.SECONDS);
-    }
+
   }
 
   /**

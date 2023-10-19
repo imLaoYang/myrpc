@@ -8,6 +8,7 @@ import com.yang.discovery.Registry;
 import com.yang.enums.CompressType;
 import com.yang.enums.SerializeType;
 import com.yang.netty.channel.ProviderChannelInitializer;
+import com.yang.transport.message.RpcRequest;
 import com.yang.utils.IdWorker;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
@@ -54,6 +55,7 @@ public class MyRpcBootStrap {
   // Netty的channel缓存
   public static final Map<InetSocketAddress, Channel> CHANNEL_CACHE = new ConcurrentHashMap<>(16);
 
+  public static final ThreadLocal<RpcRequest> REQUEST_THREAD_LOCAL = new ThreadLocal<>();
   // 序列协议
   public static String SERIALIZE_TYPE = "";
 
@@ -65,7 +67,8 @@ public class MyRpcBootStrap {
   private Registry registry;
   private ProtocolConfig protocolConfig;
 
-  private int port = 8090;
+  private int port = 8094;
+
 
 
 

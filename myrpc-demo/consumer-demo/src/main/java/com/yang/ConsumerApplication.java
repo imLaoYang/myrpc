@@ -28,7 +28,7 @@ public class ConsumerApplication {
 
       TestService testService = referenceConfig.get();
       String proxy = testService.test("12");
-      System.out.println(proxy);
+      System.out.println("调用次数:"+ i + proxy);
     }
   }
 }
