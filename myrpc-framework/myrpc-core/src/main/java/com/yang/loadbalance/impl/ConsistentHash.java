@@ -99,6 +99,7 @@ public class ConsistentHash extends AbstractLoadBalancer {
 
 
     /**
+     *
      * MurmurHash3算法
      * @param key 被hash的值
      * @return 哈希值
