@@ -2,12 +2,12 @@ package com.yang.netty.handler.inbound;
 
 import com.yang.compress.Compressor;
 import com.yang.compress.CompressorFactory;
+import com.yang.enums.RequestType;
 import com.yang.exception.RpcMessageException;
 import com.yang.serialize.Serializer;
 import com.yang.serialize.SerializerFactory;
 import com.yang.transport.message.MessageFormatConstant;
 import com.yang.transport.message.RequestPayload;
-import com.yang.enums.RequestType;
 import com.yang.transport.message.RpcRequest;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
@@ -69,7 +69,6 @@ public class RpcRequestDecode extends LengthFieldBasedFrameDecoder {
     byte requestType = byteBuf.readByte();
     // 6.解析序列化类型
     byte serializeType = byteBuf.readByte();
-
     // 7.解析压缩类型
     byte compressType = byteBuf.readByte();
     // 8.请求id
@@ -92,19 +91,18 @@ public class RpcRequestDecode extends LengthFieldBasedFrameDecoder {
     byte[] body = new byte[bodyLength];
     byteBuf.readBytes(body);
 
-    // 解压缩
-    log.info("解压之前字节-->{}",body.length);
-    Compressor compressor = CompressorFactory.getCompressWrapper(compressType).getCompressor();
-    byte[] decompressBody = compressor.decompress(body);
-    log.info("解压之后字节-->{}",decompressBody.length);
+      // 解压缩
+      log.info("解压之前字节-->{}", body.length);
+      Compressor compressor = CompressorFactory.getCompressWrapper(compressType).getCompressor();
+      byte[] decompressBody = compressor.decompress(body);
+      log.info("解压之后字节-->{}", decompressBody.length);
 
-    // 序列化工厂拿到序列化器
-    Serializer serializer = SerializerFactory.getSerializer(serializeType).getSerializer();
-    // 反序列化
-    RequestPayload requestPayload = serializer.deserialize(decompressBody, RequestPayload.class);
-    // 设置payload
-    rpcRequest.setRequestPayload(requestPayload);
-
+      // 序列化工厂拿到序列化器
+      Serializer serializer = SerializerFactory.getSerializer(serializeType).getSerializer();
+      // 反序列化
+      RequestPayload requestPayload = serializer.deserialize(decompressBody, RequestPayload.class);
+      // 设置payload
+      rpcRequest.setRequestPayload(requestPayload);
 
     return rpcRequest;
   }

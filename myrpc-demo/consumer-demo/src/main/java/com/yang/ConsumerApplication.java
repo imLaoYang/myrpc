@@ -1,11 +1,13 @@
 package com.yang;
 
 import com.yang.config.ReferenceConfig;
-import com.yang.constant.ZookeeperConstant;
 import com.yang.config.RegistryConfig;
+import com.yang.constant.ZookeeperConstant;
 import com.yang.enums.CompressType;
 import com.yang.enums.SerializeType;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class ConsumerApplication {
   public static void main(String[] args) {
     // 获取代理对象,用ReferenceConfig封装
@@ -28,7 +30,11 @@ public class ConsumerApplication {
 
       TestService testService = referenceConfig.get();
       String proxy = testService.test("12");
-      System.out.println("调用次数:"+ i + proxy);
+      log.info("-------------第{}次调用,结果为:{}------------",i +1,proxy);
     }
+
+
+
+
   }
 }

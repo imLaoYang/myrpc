@@ -5,7 +5,6 @@ import com.yang.MyRpcBootStrap;
 import com.yang.exception.LoadBalancerException;
 import com.yang.loadbalance.AbstractLoadBalancer;
 import com.yang.loadbalance.Selector;
-import com.yang.transport.message.RpcRequest;
 import lombok.extern.slf4j.Slf4j;
 
 import java.net.InetSocketAddress;
@@ -49,26 +48,25 @@ public class ConsistentHash extends AbstractLoadBalancer {
 
     @Override
     public InetSocketAddress getNext() {
-      if (addressList == null || addressList.size() == 0){
-        throw new  LoadBalancerException("无法负载均衡,服务列表为空");
+      if (addressList == null || addressList.size() == 0) {
+        throw new LoadBalancerException("无法负载均衡,服务列表为空");
       }
       // 通过requestId进行负载均衡
-      RpcRequest rpcRequest = MyRpcBootStrap.REQUEST_THREAD_LOCAL.get();
-      Long requestId = rpcRequest.getRequestId();
+      Long requestId = MyRpcBootStrap.REQUEST_THREADLOCAL.get().getRequestId();
       int hashKey = hash(requestId.toString());
 
-      // 判断hash值是否落在服务的hash值上
-      if ( ! HASH_CIRCLE.containsKey(hashKey)){
+      // 判断hash值是否落在哈希环上
+      if (!HASH_CIRCLE.containsKey(hashKey)) {
         // 寻找最近的一个节点
         SortedMap<Integer, InetSocketAddress> tailMap = HASH_CIRCLE.tailMap(hashKey);
         hashKey = tailMap.isEmpty() ? HASH_CIRCLE.firstKey() : tailMap.firstKey();
       }
-
       return HASH_CIRCLE.get(hashKey);
     }
 
     /**
      * 添加节点
+     *
      * @param address     地址
      * @param virtualNode 虚拟节点数
      */
@@ -78,13 +76,14 @@ public class ConsistentHash extends AbstractLoadBalancer {
         int hashKey = hash(address.toString() + "_" + i);
         // 添加节点
         HASH_CIRCLE.put(hashKey, address);
-        log.info("添加虚拟节点成功,hash------>{}",hashKey);
+//        log.info("添加虚拟节点成功,hash------>{}", hashKey);
       }
     }
 
 
     /**
      * 删除节点
+     *
      * @param address     地址
      * @param virtualNode 虚拟节点数
      */
