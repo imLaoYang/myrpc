@@ -1,9 +1,10 @@
-package com.yang.netty.handler.inbound;
+package com.yang.netty.handler;
 
 import com.yang.MyRpcBootStrap;
 import com.yang.config.ServiceConfig;
-import com.yang.transport.message.RequestPayload;
+import com.yang.enums.RequestType;
 import com.yang.enums.ResponseCode;
+import com.yang.transport.message.RequestPayload;
 import com.yang.transport.message.RpcRequest;
 import com.yang.transport.message.RpcResponse;
 import io.netty.channel.ChannelHandlerContext;
@@ -22,17 +23,22 @@ public class MethodInvokeHandler extends SimpleChannelInboundHandler<RpcRequest>
   protected void channelRead0(ChannelHandlerContext ctx, RpcRequest rpcRequest) throws Exception {
     // 1.拿到requestPayload
     RequestPayload requestPayload = rpcRequest.getRequestPayload();
-    // 2.反射调用具体方法
-    Object result = callTargetMethod(requestPayload);
+
+    Object result = null;
+    if (rpcRequest.getRequestType() == RequestType.REQUEST.getId()) {
+      // 2.反射调用具体方法
+      result = callTargetMethod(requestPayload);
+    }
     // 3.封装响应
     RpcResponse rpcResponse = new RpcResponse();
     rpcResponse.setRequestId(rpcRequest.getRequestId());
     rpcResponse.setCompressType(rpcRequest.getCompressType());
     rpcResponse.setSerializeType(rpcRequest.getSerializeType());
     rpcResponse.setCode(ResponseCode.SUCCEED.getCode());
-    rpcResponse.setBody(result);
-
-    log.info("响应封装完成rpcResponse-->{}",rpcResponse);
+    if (result != null) {
+      rpcResponse.setBody(result);
+    }
+    log.info("响应封装完成rpcResponse-->{}", rpcResponse);
 
     // 4.发送回consumer
     ctx.channel().writeAndFlush(rpcResponse);
@@ -40,6 +46,7 @@ public class MethodInvokeHandler extends SimpleChannelInboundHandler<RpcRequest>
 
   /**
    * 利用反射调用具体方法
+   *
    * @param requestPayload 需要调用的方法参数等信息
    * @return 调用返回的结果
    */
@@ -58,10 +65,10 @@ public class MethodInvokeHandler extends SimpleChannelInboundHandler<RpcRequest>
     try {
       method = implClass.getMethod(methodName, parameterTypes);
       // 反射调用
-      Object returnValue = method.invoke(impl,parameterValue);
+      Object returnValue = method.invoke(impl, parameterValue);
       return returnValue;
     } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
-      log.error("反射调用异常",e);
+      log.error("反射调用异常", e);
       throw new RuntimeException("反射调用异常");
     }
   }

@@ -36,11 +36,12 @@ public class DemoTest {
   public void demo2(){
 
 
-//    try {
-//      Class<?> aClass = Class.forName(TestService.class.getName());
-//    } catch (ClassNotFoundException e) {
-//      throw new RuntimeException(e);
-//    }
+    try {
+      Class<?> aClass = Class.forName(TestService.class.getName());
+      System.out.println(aClass);
+    } catch (ClassNotFoundException e) {
+      throw new RuntimeException(e);
+    }
 
   }
 

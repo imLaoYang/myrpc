@@ -37,11 +37,14 @@ public class RpcRequestEncode extends MessageToByteEncoder<RpcRequest> {
     // 8 requestId
     byteBuf.writeLong(rpcRequest.getRequestId());
 
-    // 序列化工厂拿到指定的序列化器
-    Serializer serializer = SerializerFactory.getSerializer(rpcRequest.getSerializeType()).getSerializer();
+
+
     // 心跳请求没有body
     byte[] body = null;
+    int bodyLength = 0;
     if (rpcRequest.getRequestPayload() != null) {
+      // 序列化工厂拿到指定的序列化器
+      Serializer serializer = SerializerFactory.getSerializer(rpcRequest.getSerializeType()).getSerializer();
       body = serializer.serialize(rpcRequest.getRequestPayload());
 
       // 压缩body
@@ -52,10 +55,9 @@ public class RpcRequestEncode extends MessageToByteEncoder<RpcRequest> {
 
       // 写入body
       byteBuf.writeBytes(body);
+      bodyLength  = body.length;
     }
 
-    // full length
-    int bodyLength = body == null ? 0 : body.length;
     // 保存当前指针位置
     int index = byteBuf.writerIndex();
     // 移动指针到full length位置

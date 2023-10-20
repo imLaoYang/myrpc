@@ -31,9 +31,7 @@ public class RpcRequest implements Serializable {
   // 消息体
   private RequestPayload requestPayload;
 
-
-
-
-
+  // 时间戳
+  private long timestamp;
 
 }

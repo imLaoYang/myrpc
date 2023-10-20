@@ -18,7 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 public class RpcResponseEncode extends MessageToByteEncoder<RpcResponse> {
 
   @Override
-  protected void encode(ChannelHandlerContext ctx, RpcResponse RpcResponse, ByteBuf byteBuf) {
+  protected void encode(ChannelHandlerContext ctx, RpcResponse rpcResponse, ByteBuf byteBuf) {
     // 4 magic
     byteBuf.writeBytes(MessageFormatConstant.MAGIC);
     // 1 version
@@ -28,36 +28,37 @@ public class RpcResponseEncode extends MessageToByteEncoder<RpcResponse> {
     // 4 full length
     byteBuf.writerIndex(byteBuf.writerIndex() + MessageFormatConstant.LENGTH.FULL_LENGTH);
     // 1 code
-    byteBuf.writeByte(RpcResponse.getCode());
+    byteBuf.writeByte(rpcResponse.getCode());
     // 1 serializeType
-    byteBuf.writeByte(RpcResponse.getSerializeType());
+    byteBuf.writeByte(rpcResponse.getSerializeType());
     // 1 compressType
-    byteBuf.writeByte(RpcResponse.getCompressType());
+    byteBuf.writeByte(rpcResponse.getCompressType());
     // 8 requestId
-    byteBuf.writeLong(RpcResponse.getRequestId());
+    byteBuf.writeLong(rpcResponse.getRequestId());
 
-    // todo 心跳请求没有body
-    // 序列化工厂拿到序列化器
-    Serializer serializer = SerializerFactory.getSerializer(RpcResponse.getSerializeType()).getSerializer();
+    // 心跳请求没有body
     byte[] body = null;
-    if (RpcResponse.getBody() != null) {
-      body = serializer.serialize(RpcResponse.getBody());
+    int bodyLength = 0;
+    if (rpcResponse.getBody() != null) {
+      // 序列化工厂拿到序列化器
+      Serializer serializer = SerializerFactory.getSerializer(rpcResponse.getSerializeType()).getSerializer();
+      body = serializer.serialize(rpcResponse.getBody());
 
       // 压缩
-      log.info("压缩之前大小--->{}",body.length);
-      Compressor compressor = CompressorFactory.getCompressWrapper(RpcResponse.getCompressType()).getCompressor();
+      log.info("压缩之前大小--->{}", body.length);
+      Compressor compressor = CompressorFactory.getCompressWrapper(rpcResponse.getCompressType()).getCompressor();
       body = compressor.compress(body);
-      log.info("压缩之后大小--->{}",body.length);
+      log.info("压缩之后大小--->{}", body.length);
 
 
       // 写入body
       byteBuf.writeBytes(body);
+
+      // full length
+      bodyLength = body.length;
     }
 
 
-
-    // full length
-    int bodyLength = body == null ? 0 : body.length;
     // 保存当前指针位置
     int index = byteBuf.writerIndex();
     // 移动指针到full length位置

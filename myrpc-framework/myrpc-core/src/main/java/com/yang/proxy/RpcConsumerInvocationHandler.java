@@ -6,7 +6,7 @@ import com.yang.discovery.Registry;
 import com.yang.enums.RequestType;
 import com.yang.exception.NetException;
 import com.yang.loadbalance.LoadBalancer;
-import com.yang.loadbalance.impl.ConsistentHash;
+import com.yang.loadbalance.impl.MinimumResponse;
 import com.yang.netty.NettyBootStrapInitializer;
 import com.yang.serialize.SerializerFactory;
 import com.yang.transport.message.RequestPayload;
@@ -71,13 +71,13 @@ public class RpcConsumerInvocationHandler implements InvocationHandler {
               .serializeType(serializeType)
               .requestPayload(requestPayload).build();
 
-      // 存储ThreadLocal
-      MyRpcBootStrap.REQUEST_THREAD_LOCAL.set(rpcRequest);
+      // 存入本地线程
+      MyRpcBootStrap.REQUEST_THREADLOCAL.set(rpcRequest);
 
       // 拉取服务列表
       String serviceName = getInterfaces().getName();
       // 负载均衡:轮询算法拉取可用地址
-      LoadBalancer consistentHash = new ConsistentHash();
+      LoadBalancer consistentHash = new MinimumResponse();
       InetSocketAddress address = consistentHash.selectServiceAddress(serviceName);
       log.info("{} 拉取的服务地址为----》{}", serviceName, address);
 

@@ -4,6 +4,7 @@ import com.yang.config.ProtocolConfig;
 import com.yang.config.ReferenceConfig;
 import com.yang.config.RegistryConfig;
 import com.yang.config.ServiceConfig;
+import com.yang.core.HeartBeatDetector;
 import com.yang.discovery.Registry;
 import com.yang.enums.CompressType;
 import com.yang.enums.SerializeType;
@@ -20,6 +21,8 @@ import lombok.extern.slf4j.Slf4j;
 import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.Map;
+import java.util.SortedMap;
+import java.util.TreeMap;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -50,12 +53,17 @@ public class MyRpcBootStrap {
    *  key 接口全限定的名
    *  value ServiceConfig
    */
-  public static Map<String,ServiceConfig<?>> SERVERS_MAP = new ConcurrentHashMap<>(16);
+  public static final Map<String,ServiceConfig<?>> SERVERS_MAP = new ConcurrentHashMap<>(16);
 
   // Netty的channel缓存
   public static final Map<InetSocketAddress, Channel> CHANNEL_CACHE = new ConcurrentHashMap<>(16);
 
-  public static final ThreadLocal<RpcRequest> REQUEST_THREAD_LOCAL = new ThreadLocal<>();
+  // request本地线程池
+  public static final ThreadLocal<RpcRequest> REQUEST_THREADLOCAL = new ThreadLocal<>();
+
+  // 心跳检测响应时间缓存
+  public static final SortedMap<Long, Channel> ANSWER_TIME_CHANNEL = new TreeMap<>();
+
   // 序列协议
   public static String SERIALIZE_TYPE = "";
 
@@ -67,7 +75,7 @@ public class MyRpcBootStrap {
   private Registry registry;
   private ProtocolConfig protocolConfig;
 
-  private int port = 8094;
+  private int port = 8092;
 
 
 
@@ -189,7 +197,11 @@ public class MyRpcBootStrap {
    * @return 当前实例
    */
   public MyRpcBootStrap reference(ReferenceConfig<?> referenceConfig) {
-    //放入注册中心实例
+
+    // 心跳检测
+    HeartBeatDetector.detect(referenceConfig.getInterfaces().getName());
+
+    // 放入注册中心实例
     referenceConfig.setRegistry(registry);
 
     return this;
@@ -219,7 +231,6 @@ public class MyRpcBootStrap {
   public Registry getRegistry(){
     return registry;
   }
-
 
 
 }

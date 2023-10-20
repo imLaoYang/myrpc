@@ -31,11 +31,6 @@ public class RpcResponseDecode extends LengthFieldBasedFrameDecoder {
             0);
   }
 
-
-
-
-
-
   @Override
   protected Object decode(ChannelHandlerContext ctx, ByteBuf in) throws Exception {
     Object obj = super.decode(ctx, in);
@@ -47,6 +42,12 @@ public class RpcResponseDecode extends LengthFieldBasedFrameDecoder {
 
   }
 
+  /**
+   * Response解码
+   *
+   * @param byteBuf
+   * @return
+   */
   private Object decodeFrame(ByteBuf byteBuf) {
     // 判断魔术值是否匹配
     byte[] magic = new byte[MessageFormatConstant.MAGIC.length];
@@ -83,29 +84,26 @@ public class RpcResponseDecode extends LengthFieldBasedFrameDecoder {
     rpcResponse.setSerializeType(serializeType);
 
 
-    // todo 心跳检测请求没有body
-//    if (requestType == RequestType.HEART.getId()){
-//      return rpcResponse;
-//    }
-
+    // 心跳检测请求没有body
     // 拿到body
     int bodyLength = fullLength - headLength;
-    byte[] body = new byte[bodyLength];
-    byteBuf.readBytes(body);
-    // 解压缩
-    log.info("解压之前字节-->{}",body.length);
-    Compressor compressor = CompressorFactory.getCompressWrapper(compressType).getCompressor();
-    byte[] decompressBody = compressor.decompress(body);
-    log.info("解压之后字节-->{}",decompressBody.length);
+    if (bodyLength != 0) {
+      byte[] body = new byte[bodyLength];
+      byteBuf.readBytes(body);
+      // 解压缩
+      log.info("解压之前字节-->{}", body.length);
+      Compressor compressor = CompressorFactory.getCompressWrapper(compressType).getCompressor();
+      byte[] decompressBody = compressor.decompress(body);
+      log.info("解压之后字节-->{}", decompressBody.length);
 
-    // 反序列化
-    // 序列化工厂拿到序列化器
-    Serializer serializer = SerializerFactory.getSerializer(serializeType).getSerializer();
-    // 反序列化
-    Object returnBody = serializer.deserialize(decompressBody, Object.class);
-    // 设置返回参数
-    rpcResponse.setBody(returnBody);
-
+      // 反序列化
+      // 序列化工厂拿到序列化器
+      Serializer serializer = SerializerFactory.getSerializer(serializeType).getSerializer();
+      // 反序列化
+      Object returnBody = serializer.deserialize(decompressBody, Object.class);
+      // 设置返回参数
+      rpcResponse.setBody(returnBody);
+    }
     return rpcResponse;
   }
 }
