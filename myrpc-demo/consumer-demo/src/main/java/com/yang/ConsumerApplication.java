@@ -25,16 +25,30 @@ public class ConsumerApplication {
             // 注册服务
             .reference(referenceConfig);
 
-    // 获取一个代理对象
-    for (int i = 0; i < 5; i++) {
 
-      TestService testService = referenceConfig.get();
-      String proxy = testService.test("12");
-      log.info("-------------第{}次调用,结果为:{}------------",i +1,proxy);
-    }
+    TestService testService = referenceConfig.get();
+    while (true) {
 
+      System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
 
+      // 获取一个代理对象
+      for (int i = 0; i < 5; i++) {
+        String proxy = testService.test("12");
+        log.info("-------------第{}次调用,结果为:{}------------", i + 1, proxy);
+      }
+      System.out.println("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
+      try {
+        Thread.sleep(10000);
+      } catch (InterruptedException e) {
+        throw new RuntimeException(e);
+      }
+      // 获取一个代理对象
+     for (int i = 0; i < 5; i++) {
+       String proxy = testService.test("12");
+       log.info("-------------第{}次调用,结果为:{}------------", i + 1, proxy);
+     }
 
+   }
 
   }
 }

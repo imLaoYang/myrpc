@@ -28,7 +28,7 @@ public class HessianSerializer implements Serializer {
       hessian2Output.writeObject(object);
       hessian2Output.flush();
       byte[] result = byteArrayOutputStream.toByteArray();
-      log.info("{}序列化完成", object);
+      log.debug("{}序列化完成", object);
       return result;
     } catch (IOException e) {
       log.error("反序列化失败", e);
@@ -48,7 +48,7 @@ public class HessianSerializer implements Serializer {
     ) {
       Hessian2Input hessian2Input = new Hessian2Input(bais);
       Object object = hessian2Input.readObject();
-      log.info("{}反序列化完成", clazz);
+      log.debug("{}反序列化完成", clazz);
 
       return clazz.cast(object);
     } catch (IOException  e) {

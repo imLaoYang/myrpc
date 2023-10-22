@@ -8,6 +8,8 @@ import com.yang.core.HeartBeatDetector;
 import com.yang.discovery.Registry;
 import com.yang.enums.CompressType;
 import com.yang.enums.SerializeType;
+import com.yang.loadbalance.LoadBalancer;
+import com.yang.loadbalance.impl.ConsistentHash;
 import com.yang.netty.channel.ProviderChannelInitializer;
 import com.yang.transport.message.RpcRequest;
 import com.yang.utils.IdWorker;
@@ -70,12 +72,15 @@ public class MyRpcBootStrap {
   // 压缩协议
   public static String COMPRESS_TYPE = "";
 
+  // 负载均衡器
+  public static LoadBalancer LOADBALANCER = new ConsistentHash();
+
   // 默认配置信息
   private String applicationName = "default-name";
   private Registry registry;
   private ProtocolConfig protocolConfig;
 
-  private int port = 8092;
+  private int port = 8099;
 
 
 
@@ -119,7 +124,7 @@ public class MyRpcBootStrap {
    */
   public MyRpcBootStrap protocol(ProtocolConfig protocolConfig) {
 //    SERIALIZE_TYPE = protocolConfig.getSerializeType().getType();
-    log.info("使用{}协议进行序列化", protocolConfig.getSerializeType().getType());
+    log.debug("使用{}协议进行序列化", protocolConfig.getSerializeType().getType());
     return this;
   }
 
@@ -202,7 +207,9 @@ public class MyRpcBootStrap {
     HeartBeatDetector.detect(referenceConfig.getInterfaces().getName());
 
     // 放入注册中心实例
-    referenceConfig.setRegistry(registry);
+    referenceConfig.setRegistry(this.registry);
+
+
 
     return this;
   }

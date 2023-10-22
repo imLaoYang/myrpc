@@ -48,10 +48,10 @@ public class RpcRequestEncode extends MessageToByteEncoder<RpcRequest> {
       body = serializer.serialize(rpcRequest.getRequestPayload());
 
       // 压缩body
-      log.info("压缩之前字节大小{}",body.length);
+      log.debug("压缩之前字节大小{}",body.length);
       Compressor compressor = CompressorFactory.getCompressWrapper(rpcRequest.getCompressType()).getCompressor();
       body = compressor.compress(body);
-      log.info("压缩之后字节大小{}",body.length);
+      log.debug("压缩之后字节大小{}",body.length);
 
       // 写入body
       byteBuf.writeBytes(body);

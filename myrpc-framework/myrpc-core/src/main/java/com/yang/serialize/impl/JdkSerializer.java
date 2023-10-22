@@ -29,7 +29,7 @@ public class JdkSerializer implements Serializer {
     ) {
       outputStream.writeObject(object);
       byte[] result = baos.toByteArray();
-      log.info("{}序列化完成", object);
+      log.debug("{}序列化完成", object);
 
       return result;
     } catch (IOException e) {
@@ -56,7 +56,7 @@ public class JdkSerializer implements Serializer {
             ObjectInputStream outputStream = new ObjectInputStream(bais);
     ) {
       Object object = outputStream.readObject();
-      log.info("{}反序列化完成", clazz);
+      log.debug("{}反序列化完成", clazz);
 
       return clazz.cast(object);
     } catch (IOException | ClassNotFoundException e) {

@@ -92,10 +92,10 @@ public class RpcRequestDecode extends LengthFieldBasedFrameDecoder {
     byteBuf.readBytes(body);
 
       // 解压缩
-      log.info("解压之前字节-->{}", body.length);
+      log.debug("解压之前字节-->{}", body.length);
       Compressor compressor = CompressorFactory.getCompressWrapper(compressType).getCompressor();
       byte[] decompressBody = compressor.decompress(body);
-      log.info("解压之后字节-->{}", decompressBody.length);
+      log.debug("解压之后字节-->{}", decompressBody.length);
 
       // 序列化工厂拿到序列化器
       Serializer serializer = SerializerFactory.getSerializer(serializeType).getSerializer();
