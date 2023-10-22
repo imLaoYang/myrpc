@@ -14,4 +14,5 @@ import lombok.NoArgsConstructor;
 public class ProtocolConfig {
 
   private SerializeType serializeType;
+
 }

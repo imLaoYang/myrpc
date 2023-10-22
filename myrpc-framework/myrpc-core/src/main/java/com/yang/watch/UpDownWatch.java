@@ -33,7 +33,7 @@ public class UpDownWatch implements Watcher {
       log.debug("[{}]感知到服务上/下线,重新拉取服务列表", event.getPath());
 
       String serviceName = getServiceName(event.getPath());
-      Registry registry = MyRpcBootStrap.getInstance().getRegistry();
+      Registry registry = MyRpcBootStrap.getInstance().getConfiguration().getRegistryConfig().getRegistry();
       // 重新拉取服务列表
       List<InetSocketAddress> addressList = registry.lookup(serviceName);
       // 处理上线
@@ -63,7 +63,7 @@ public class UpDownWatch implements Watcher {
       });
 
       // 重新负载均衡
-      LoadBalancer loadbalancer = MyRpcBootStrap.LOADBALANCER;
+      LoadBalancer loadbalancer = MyRpcBootStrap.getInstance().getConfiguration().getLoadbalancer();
       loadbalancer.reLoadBalance(serviceName,addressList);
     }
 

@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 public class ServiceConfig<T> {
 
   // 接口全限定名
-  private Class<T> interfaces;
+  private Class<?> interfaces;
 
   // 接口的实现类
   private Object impl;
