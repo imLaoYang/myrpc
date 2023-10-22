@@ -29,7 +29,7 @@ public class HeartBeatDetector {
   /**
    * 探测
    *
-   * @param serviceName 服务名
+   * @param serviceName 接口名
    */
   public static void detect(String serviceName) {
     // 注册中心拉取服务列表
@@ -54,7 +54,7 @@ public class HeartBeatDetector {
     // 定时发送消息
     Thread thread = new Thread(() -> {
       new Timer().scheduleAtFixedRate(new DetectTask(), 0, 2000);
-    },"HeartBeatDetector_Thread");
+    }, "HeartBeatDetector_Thread");
     // 设置为守护线程
     thread.setDaemon(true);
     thread.start();
@@ -104,14 +104,14 @@ public class HeartBeatDetector {
             channel.writeAndFlush(rpcRequest).addListener((ChannelFutureListener) promise -> {
               // 请求未成功
               if (!promise.isSuccess()) {
-                completableFuture.complete(promise.cause());
+                completableFuture.completeExceptionally(promise.cause());
               }
             });
 
             // 请求结束时间
             long endTime = 0L;
             try {
-              completableFuture.get(2, TimeUnit.SECONDS);
+              completableFuture.get(1, TimeUnit.SECONDS);
               endTime = System.currentTimeMillis();
             } catch (InterruptedException | ExecutionException | TimeoutException e) {
               tryTime--;
@@ -125,7 +125,7 @@ public class HeartBeatDetector {
                 log.warn("{}地址已经失效", address);
               }
 
-              // 等待一顿时间后重试
+              // 等待随机时间后重试,防止集体重试
               try {
                 Thread.sleep(10 * (new Random().nextInt(5)));
               } catch (InterruptedException ex) {
@@ -136,18 +136,17 @@ public class HeartBeatDetector {
 
             long time = endTime - starTime;
             MyRpcBootStrap.ANSWER_TIME_CHANNEL.put(time, channel);
-            log.info("{}响应时间为---->[{}]", address, time);
+//            log.debug("{}响应时间为---->[{}]", address, time);
             break;
           }
         }
       }
 
-      // 遍历
       log.info("-----------------------各服务响应时间---------------------");
       SortedMap<Long, Channel> answerTimeChannel = MyRpcBootStrap.ANSWER_TIME_CHANNEL;
-      answerTimeChannel.forEach(  (time,channel) ->{
-        log.info("地址{},响应时间为{}",channel.remoteAddress(),time);
-      }  );
+      answerTimeChannel.forEach((time, channel) -> {
+        log.info("地址{},响应时间为{}", channel.remoteAddress(), time);
+      });
 
 
     }

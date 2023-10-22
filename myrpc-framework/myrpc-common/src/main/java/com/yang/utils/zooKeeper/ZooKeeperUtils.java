@@ -43,7 +43,7 @@ public class ZooKeeperUtils {
     try {
       ZooKeeper zooKeeper = new ZooKeeper(connection, timeout, event -> {
         if (event.getState() == Watcher.Event.KeeperState.SyncConnected) {
-          log.info("-----------{}连接成功------------", connection);
+          log.debug("-----------{}连接成功------------", connection);
           countDownLatch.countDown();
         }
       });
@@ -69,10 +69,10 @@ public class ZooKeeperUtils {
     try {
       if (zooKeeper.exists(node.getNodePath(), watcher) == null) {
         String result = zooKeeper.create(node.getNodePath(), null, acl, createMode);
-        log.info("节点创建成功:[{}]", result);
+        log.debug("节点创建成功:[{}]", result);
         return true;
       } else {
-        log.info("节点路径已存在:[{}]", node.getNodePath());
+        log.debug("节点路径已存在:[{}]", node.getNodePath());
       }
       return false;
     } catch (KeeperException | InterruptedException e) {

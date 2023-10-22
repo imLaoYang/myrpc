@@ -8,10 +8,9 @@ import com.yang.exception.RegistryException;
 import com.yang.utils.NetUtils;
 import com.yang.utils.zooKeeper.ZooKeeperNode;
 import com.yang.utils.zooKeeper.ZooKeeperUtils;
+import com.yang.watch.UpDownWatch;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.ZooDefs;
-import org.apache.zookeeper.ZooKeeper;
+import org.apache.zookeeper.*;
 
 import java.net.InetSocketAddress;
 import java.util.List;
@@ -64,7 +63,7 @@ public class ZooKeeperRegistry extends AbstractRegistry {
       ZooKeeperNode zookeeperNode = new ZooKeeperNode(tempNode, null);
       ZooKeeperUtils.createNode(zooKeeper, zookeeperNode, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL, null);
     }
-    log.info("服务已经被发布注册:[{}]", serviceConfig.getInterfaces().getName());
+    log.debug("服务已经被发布注册:[{}]", serviceConfig.getInterfaces().getName());
   }
 
   /**
@@ -89,7 +88,7 @@ public class ZooKeeperRegistry extends AbstractRegistry {
       ZooKeeperNode zookeeperNode = new ZooKeeperNode(tempNode, null);
       ZooKeeperUtils.createNode(zooKeeper, zookeeperNode, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL, null);
     }
-    log.info("服务已经被发布注册:[{}]", serviceConfig.getInterfaces().getName());
+    log.debug("服务已经被发布注册:[{}]", serviceConfig.getInterfaces().getName());
   }
 
   /**
@@ -102,7 +101,7 @@ public class ZooKeeperRegistry extends AbstractRegistry {
   public List<InetSocketAddress> lookup(String serviceName) {
     // 父路径
     String path = ZookeeperConstant.DEFAULT_PROVIDER_PATH + "/" + serviceName;
-    List<String> ipAndPort = ZooKeeperUtils.getChildren(zooKeeper, path, null);
+    List<String> ipAndPort = ZooKeeperUtils.getChildren(zooKeeper, path, new UpDownWatch());
     // stream流映射
     List<InetSocketAddress> inetSocketAddresses = ipAndPort.stream().map(item -> {
       String[] split = item.split(":");

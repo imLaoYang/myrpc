@@ -45,10 +45,10 @@ public class RpcResponseEncode extends MessageToByteEncoder<RpcResponse> {
       body = serializer.serialize(rpcResponse.getBody());
 
       // 压缩
-      log.info("压缩之前大小--->{}", body.length);
+      log.debug("压缩之前大小--->{}", body.length);
       Compressor compressor = CompressorFactory.getCompressWrapper(rpcResponse.getCompressType()).getCompressor();
       body = compressor.compress(body);
-      log.info("压缩之后大小--->{}", body.length);
+      log.debug("压缩之后大小--->{}", body.length);
 
 
       // 写入body

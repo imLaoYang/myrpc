@@ -5,7 +5,6 @@ import com.yang.netty.handler.inbound.RpcRequestDecode;
 import com.yang.netty.handler.outbound.RpcResponseEncode;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.SocketChannel;
-import io.netty.handler.logging.LoggingHandler;
 
 /**
  * 提供方的channel初始化器
@@ -15,7 +14,7 @@ public class  ProviderChannelInitializer extends ChannelInitializer<SocketChanne
   protected void initChannel(SocketChannel ch) throws Exception {
     ch.pipeline()
             // 日志
-            .addLast(new LoggingHandler())
+//            .addLast(new LoggingHandler())
             // 收到请求时,报文解码器
             .addLast(new RpcRequestDecode())
             // 方法调用

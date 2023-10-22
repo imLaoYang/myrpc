@@ -8,7 +8,6 @@ import com.yang.netty.handler.outbound.RpcRequestEncode;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.SocketChannel;
-import io.netty.handler.logging.LoggingHandler;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -25,7 +24,7 @@ public class ConsumerChannelInitializer extends ChannelInitializer<SocketChannel
   protected void initChannel(SocketChannel ch) throws Exception {
     ch.pipeline()
             // 日志处理器
-            .addLast(new LoggingHandler())
+//            .addLast(new LoggingHandler())
             // 发送请求时的编码器
             .addLast(new RpcRequestEncode())
             // 收到Provider响应后的解码器

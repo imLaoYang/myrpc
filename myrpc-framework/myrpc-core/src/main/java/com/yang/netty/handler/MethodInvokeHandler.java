@@ -38,7 +38,7 @@ public class MethodInvokeHandler extends SimpleChannelInboundHandler<RpcRequest>
     if (result != null) {
       rpcResponse.setBody(result);
     }
-    log.info("响应封装完成rpcResponse-->{}", rpcResponse);
+    log.debug("响应封装完成rpcResponse-->{}", rpcResponse);
 
     // 4.发送回consumer
     ctx.channel().writeAndFlush(rpcResponse);

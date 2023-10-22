@@ -17,10 +17,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class RoundRobin extends AbstractLoadBalancer implements LoadBalancer {
 
 
-
   @Override
   protected Selector getSelector(List<InetSocketAddress> addressList) {
-    return new RoundRobinSelector(addressList);
+    return new RoundRobinSelector(addressList, 0);
   }
 
 
@@ -30,16 +29,18 @@ public class RoundRobin extends AbstractLoadBalancer implements LoadBalancer {
   private static class RoundRobinSelector implements Selector {
 
     // 轮询指针
-    private static final AtomicInteger INDEX = new AtomicInteger(0);
+    private static AtomicInteger INDEX;
 
-    private final List<InetSocketAddress> addressList;
+    private static List<InetSocketAddress> addressList;
 
-    public RoundRobinSelector(List<InetSocketAddress> addressList) {
-     this.addressList  =  addressList;
+    public RoundRobinSelector(List<InetSocketAddress> addressList, int index) {
+      INDEX = new AtomicInteger(index);
+      this.addressList = addressList;
     }
 
     /**
      * 获得下一个地址
+     *
      * @return address
      */
     @Override
@@ -50,12 +51,13 @@ public class RoundRobin extends AbstractLoadBalancer implements LoadBalancer {
       }
       InetSocketAddress address = addressList.get(INDEX.get());
 
-      // 最后一位,则重置指针
-      if (INDEX.get() == addressList.size() - 1) {
-        INDEX.set(0);
-      }
       // 下标加1
       INDEX.incrementAndGet();
+
+      // 最后一位,则重置指针
+      if (INDEX.get() == addressList.size() ) {
+        INDEX.set(0);
+      }
 
       return address;
     }

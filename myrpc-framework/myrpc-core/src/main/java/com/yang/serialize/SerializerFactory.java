@@ -47,7 +47,7 @@ public class SerializerFactory {
       log.warn("找不到序列化器,使用默认序列化Hessian");
       return SERIALIZER_CACHE.get(SerializeType.HESSIAN.getType());
     }
-    log.info("使用序列化协议{}",serializer.getSerializeType().getType());
+    log.debug("使用序列化协议{}",serializer.getSerializeType().getType());
     return serializer;
   }
 
@@ -62,7 +62,7 @@ public class SerializerFactory {
       log.warn("找不到序列化器,使用默认序列化Hessian");
       return SERIALIZER_CACHE.get(SerializeType.HESSIAN.getType());
     }
-    log.info("使用序列化协议{}",serializer.getSerializeType().getType());
+    log.debug("使用序列化协议{}",serializer.getSerializeType().getType());
     return serializer;
   }
 
@@ -73,7 +73,7 @@ public class SerializerFactory {
   public static void addSerializer(SerializerWrapper serializerWrapper){
     SERIALIZER_CACHE.put(serializerWrapper.getSerializeType().getType(),serializerWrapper);
     SERIALIZER_CACHE_CODE.put(serializerWrapper.getSerializeType().getCode(),serializerWrapper);
-    log.info("添加序列化协议成功{}",serializerWrapper.getSerializeType().getType());
+    log.debug("添加序列化协议成功{}",serializerWrapper.getSerializeType().getType());
 
   }
 
