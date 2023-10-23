@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+        <!ELEMENT configuration (port?,applicationName?,registryConfig?,serializerType?,compressType?,loadbalancer?,idWorker?,protocolConfig?)>
+
+        <!ELEMENT port ANY >
+
+        <!ELEMENT applicationName ANY >
+
+        <!ELEMENT registryConfig EMPTY >
+        <!ATTLIST registryConfig
+                class CDATA #REQUIRED
+                url CDATA #REQUIRED
+                >
+
+        <!ELEMENT serializerType EMPTY >
+        <!ATTLIST serializerType
+                type CDATA #REQUIRED
+                >
+        <!ELEMENT compressType EMPTY >
+        <!ATTLIST compressType
+                type CDATA #REQUIRED
+                >
+
+        <!ELEMENT loadbalancer EMPTY >
+        <!ATTLIST loadbalancer
+                class CDATA #REQUIRED
+                >
+
+        <!ELEMENT idWorker EMPTY >
+        <!ATTLIST idWorker
+                class CDATA #REQUIRED
+                workerId CDATA #REQUIRED
+                datacenterId CDATA #REQUIRED
+                >
+
+        <!ELEMENT protocolConfig EMPTY >
+        <!ATTLIST protocolConfig
+                class CDATA #REQUIRED
+                >
