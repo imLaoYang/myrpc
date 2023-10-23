@@ -24,12 +24,14 @@ public class ReferenceConfig<T> {
 
   /**
    * 动态代理
-   * @return 泛型
+   * @return 远程调用的返回值
    */
   public T get() {
 
     ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
     Class[] interfaces = new Class[]{this.interfaces};
+
+
     Object proxyInstance = Proxy.newProxyInstance(classLoader, interfaces, new RpcConsumerInvocationHandler(registry,interfaces[0]));
 
     return (T) proxyInstance;

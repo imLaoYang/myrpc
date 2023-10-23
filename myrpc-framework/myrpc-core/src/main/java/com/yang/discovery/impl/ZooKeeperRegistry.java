@@ -1,7 +1,7 @@
 package com.yang.discovery.impl;
 
+import com.yang.MyRpcBootStrap;
 import com.yang.config.ServiceConfig;
-import com.yang.constant.NetConstant;
 import com.yang.constant.ZookeeperConstant;
 import com.yang.discovery.AbstractRegistry;
 import com.yang.exception.RegistryException;
@@ -10,7 +10,9 @@ import com.yang.utils.zooKeeper.ZooKeeperNode;
 import com.yang.utils.zooKeeper.ZooKeeperUtils;
 import com.yang.watch.UpDownWatch;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.zookeeper.*;
+import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.ZooDefs;
+import org.apache.zookeeper.ZooKeeper;
 
 import java.net.InetSocketAddress;
 import java.util.List;
@@ -41,7 +43,7 @@ public class ZooKeeperRegistry extends AbstractRegistry {
   }
 
 
-  /**
+   /**
    * 发布注册
    *
    * @param serviceConfig 服务配置内容
@@ -58,7 +60,7 @@ public class ZooKeeperRegistry extends AbstractRegistry {
     // 2.创建临时节点
     String ip = NetUtils.getLocalIpByNetCard();
 
-    String tempNode = parentNode + "/" + ip + ":" + NetConstant.PORT;
+    String tempNode = parentNode + "/" + ip + ":" + MyRpcBootStrap.getInstance().getConfiguration().getPort();
     if (!ZooKeeperUtils.exists(zooKeeper, tempNode, null)) {
       ZooKeeperNode zookeeperNode = new ZooKeeperNode(tempNode, null);
       ZooKeeperUtils.createNode(zooKeeper, zookeeperNode, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL, null);
@@ -68,8 +70,9 @@ public class ZooKeeperRegistry extends AbstractRegistry {
 
   /**
    * 发布注册
+   *
    * @param serviceConfig 服务配置内容
-   * @param port 注册端口
+   * @param port          注册端口
    */
   @Override
   public void register(ServiceConfig<?> serviceConfig, int port) {
@@ -109,8 +112,8 @@ public class ZooKeeperRegistry extends AbstractRegistry {
       int port = Integer.parseInt(split[1]);
       return new InetSocketAddress(ip, port);
     }).collect(Collectors.toList());
-    
-    if (inetSocketAddresses.size() == 0){
+
+    if (inetSocketAddresses.size() == 0) {
       throw new RegistryException("找不到可用服务列表:" + serviceName);
     }
 

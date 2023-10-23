@@ -2,6 +2,7 @@ package com.yang.proxy;
 
 import com.yang.MyRpcBootStrap;
 import com.yang.compress.CompressorFactory;
+import com.yang.config.Configuration;
 import com.yang.discovery.Registry;
 import com.yang.enums.RequestType;
 import com.yang.exception.NetException;
@@ -59,9 +60,12 @@ public class RpcConsumerInvocationHandler implements InvocationHandler {
             .parameterValue(args).build();
 
 
-    byte serializeType = SerializerFactory.getSerializer(MyRpcBootStrap.SERIALIZE_TYPE).getSerializeType().getCode();
-    byte compressType = CompressorFactory.getCompressWrapper(MyRpcBootStrap.COMPRESS_TYPE).getCompressType().getCode();
-    long requestId = MyRpcBootStrap.REQUEST_ID.nextId();
+    Configuration configuration = MyRpcBootStrap.getInstance().getConfiguration();
+    String serializerName = configuration.getSerializerType();
+    String compressName = configuration.getCompressType();
+    byte serializeType = SerializerFactory.getSerializer(serializerName).getSerializeType().getCode();
+    byte compressType = CompressorFactory.getCompressWrapper(compressName).getCompressType().getCode();
+    long requestId = configuration.getIdWorker().nextId();
     log.debug("发送的requestId---->{}", requestId);
     RpcRequest rpcRequest = RpcRequest.builder()
             .requestId(requestId)
@@ -76,7 +80,7 @@ public class RpcConsumerInvocationHandler implements InvocationHandler {
 
     String serviceName = getInterfaces().getName();
     // 负载均衡器
-    LoadBalancer loadbalancer = MyRpcBootStrap.LOADBALANCER;
+    LoadBalancer loadbalancer = configuration.getLoadbalancer();
     InetSocketAddress address = loadbalancer.selectServiceAddress(serviceName);
     log.info("{} 拉取的服务地址为----》{}", serviceName, address);
 

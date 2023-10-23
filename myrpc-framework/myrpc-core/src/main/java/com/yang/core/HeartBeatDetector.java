@@ -3,8 +3,10 @@ package com.yang.core;
 
 import com.yang.MyRpcBootStrap;
 import com.yang.compress.CompressorFactory;
+import com.yang.config.Configuration;
 import com.yang.discovery.Registry;
 import com.yang.enums.RequestType;
+import com.yang.loadbalance.LoadBalancer;
 import com.yang.netty.NettyBootStrapInitializer;
 import com.yang.serialize.SerializerFactory;
 import com.yang.transport.message.RpcRequest;
@@ -18,6 +20,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
 
 /**
  * 心跳检测
@@ -33,7 +36,7 @@ public class HeartBeatDetector {
    */
   public static void detect(String serviceName) {
     // 注册中心拉取服务列表
-    Registry registry = MyRpcBootStrap.getInstance().getRegistry();
+    Registry registry = MyRpcBootStrap.getInstance().getConfiguration().getRegistryConfig().getRegistry();
     List<InetSocketAddress> addressList = registry.lookup(serviceName);
 
     // 建立连接
@@ -53,7 +56,7 @@ public class HeartBeatDetector {
 
     // 定时发送消息
     Thread thread = new Thread(() -> {
-      new Timer().scheduleAtFixedRate(new DetectTask(), 0, 2000);
+      new Timer().scheduleAtFixedRate(new DetectTask(serviceName), 0, 2000);
     }, "HeartBeatDetector_Thread");
     // 设置为守护线程
     thread.setDaemon(true);
@@ -65,6 +68,13 @@ public class HeartBeatDetector {
    * 探测任务,对所有的channel缓存进行探测
    */
   private static class DetectTask extends TimerTask {
+
+    private String serviceName;
+
+    public DetectTask(String serviceName) {
+      this.serviceName = serviceName;
+    }
+
     @Override
     public void run() {
 
@@ -88,10 +98,13 @@ public class HeartBeatDetector {
 
             // 请求开始时间
             long starTime = System.currentTimeMillis();
+            Configuration configuration = MyRpcBootStrap.getInstance().getConfiguration();
+            String serializerName = configuration.getSerializerType();
+            String compressName = configuration.getCompressType();
             // 构建请求
-            byte serializeType = SerializerFactory.getSerializer(MyRpcBootStrap.SERIALIZE_TYPE).getSerializeType().getCode();
-            byte compressType = CompressorFactory.getCompressWrapper(MyRpcBootStrap.COMPRESS_TYPE).getCompressType().getCode();
-            long requestId = MyRpcBootStrap.REQUEST_ID.nextId();
+            byte serializeType = SerializerFactory.getSerializer(serializerName).getSerializeType().getCode();
+            byte compressType = CompressorFactory.getCompressWrapper(compressName).getCompressType().getCode();
+            long requestId = configuration.getIdWorker().nextId();
             RpcRequest rpcRequest = RpcRequest.builder()
                     .requestId(requestId)
                     .requestType(RequestType.HEART.getId())
@@ -123,6 +136,15 @@ public class HeartBeatDetector {
                 // 删除失效的地址
                 MyRpcBootStrap.CHANNEL_CACHE.remove(address);
                 log.warn("{}地址已经失效", address);
+                // 重新做负载均衡
+                Registry registry = configuration.getRegistryConfig().getRegistry();
+                LoadBalancer loadbalancer = configuration.getLoadbalancer();
+                List<InetSocketAddress> lookup = registry.lookup(serviceName);
+
+                // MyRpcBootStrap.CHANNEL_CACHE::containsKey ---> addressList的每个值是否包含key
+                List<InetSocketAddress> addressList = lookup.stream().filter(MyRpcBootStrap.CHANNEL_CACHE::containsKey).collect(Collectors.toList());
+
+                loadbalancer.reLoadBalance(serviceName,addressList);
               }
 
               // 等待随机时间后重试,防止集体重试
