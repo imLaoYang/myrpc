@@ -99,14 +99,11 @@ public class MyRpcBootStrap {
 
 
   /**
-   * 配置协议
-   *
+   * 配置协议(目前先不用)
    * @param protocolConfig 协议配置类
    * @return 当前实例
    */
-  public MyRpcBootStrap protocol(ProtocolConfig protocolConfig) {
-    configuration.setProtocolConfig(protocolConfig);
-    log.debug("使用{}协议进行序列化", protocolConfig.getSerializeType().getType());
+  private MyRpcBootStrap protocol(ProtocolConfig protocolConfig) {
     return this;
   }
 

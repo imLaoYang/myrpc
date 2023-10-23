@@ -1,18 +1,29 @@
 package com.yang.config;
 
-import com.yang.enums.SerializeType;
+import com.yang.compress.Compressor;
+import com.yang.compress.impl.GzipCompressor;
+import com.yang.serialize.Serializer;
+import com.yang.serialize.impl.HessianSerializer;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 /**
- * 序列化协议配置类
+ * 协议配置类
  */
 @Data
 @AllArgsConstructor
-@NoArgsConstructor
 public class ProtocolConfig {
 
-  private SerializeType serializeType;
+  // 序列化器
+  private Serializer serializer;
 
+  // 压缩器
+  private Compressor compressor;
+
+  public ProtocolConfig() {
+    // 默认Hessian
+    this.serializer = new HessianSerializer();
+    // 默认Gzip
+    this.compressor = new GzipCompressor();
+  }
 }
