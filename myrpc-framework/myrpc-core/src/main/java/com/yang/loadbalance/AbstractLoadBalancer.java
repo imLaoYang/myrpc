@@ -56,7 +56,7 @@ public abstract class AbstractLoadBalancer implements LoadBalancer {
    * @param addressList 服务列表
    */
   @Override
-  public void reLoadBalance(String serviceName, List<InetSocketAddress> addressList) {
+  public synchronized void reLoadBalance(String serviceName, List<InetSocketAddress> addressList) {
     // 更新选择器中的服务列表缓存,put()方法会自动覆盖重名key的value
     SELECTOR_CACHE.put(serviceName, getSelector(addressList));
 

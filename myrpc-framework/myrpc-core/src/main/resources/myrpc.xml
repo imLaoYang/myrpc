@@ -2,20 +2,20 @@
 <!DOCTYPE configuration SYSTEM "myrpc-config.dtd">
 <configuration>
 
-    <port>8099</port>
+<!--    <port>8099</port>-->
 
-    <applicationName>myrpc</applicationName>
+<!--    <applicationName>myrpc</applicationName>-->
 
-    <registryConfig class="com.yang.config.RegistryConfig" url="zookeeper://127.0.0.1:2181"/>
+<!--    <registryConfig class="com.yang.config.RegistryConfig" url="zookeeper://127.0.0.1:2181"/>-->
 
-    <serializerType type="Hessian"/>
+<!--    <serializerType type="Hessian"/>-->
 
-    <compressType type="gzip"/>
+<!--    <compressType type="gzip"/>-->
 
-    <loadbalancer class="com.yang.loadbalance.impl.RoundRobin"/>
+<!--    <loadbalancer class="com.yang.loadbalance.impl.RoundRobin"/>-->
 
-    <idWorker class="com.yang.utils.IdWorker" workerId="0" datacenterId="0"/>
+<!--    <idWorker class="com.yang.utils.IdWorker" workerId="0" datacenterId="0"/>-->
 
-    <protocolConfig class="com.yang.config.ProtocolConfig"/>
+<!--    <protocolConfig class="com.yang.config.ProtocolConfig"/>-->
 
 </configuration>

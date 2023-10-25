@@ -17,7 +17,6 @@ public class ConsumerChannelInboundHandler extends SimpleChannelInboundHandler<R
   protected void channelRead0(ChannelHandlerContext ctx, RpcResponse rpcResponse) throws Exception {
     Object returnValue = rpcResponse.getBody();
     Long requestId = rpcResponse.getRequestId();
-//    log.debug("消费端收到的ID -->>{}",requestId);
     CompletableFuture<Object> completableFuture = MyRpcBootStrap.PENDING_REQUEST.get(requestId);
     completableFuture.complete(returnValue);
   }

@@ -26,4 +26,5 @@ public enum CompressType {
   public String getType() {
     return type;
   }
+
 }

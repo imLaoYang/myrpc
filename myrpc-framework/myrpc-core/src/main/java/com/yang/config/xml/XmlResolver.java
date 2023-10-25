@@ -2,11 +2,8 @@ package com.yang.config.xml;
 
 import com.yang.config.Configuration;
 import com.yang.config.RegistryConfig;
-import com.yang.constant.ZookeeperConstant;
-import com.yang.enums.CompressType;
-import com.yang.enums.SerializeType;
+import com.yang.exception.XmlParseException;
 import com.yang.loadbalance.LoadBalancer;
-import com.yang.loadbalance.impl.RoundRobin;
 import com.yang.utils.IdWorker;
 import lombok.extern.slf4j.Slf4j;
 import org.w3c.dom.Document;
@@ -26,7 +23,7 @@ import java.lang.reflect.InvocationTargetException;
  * 使用xpath
  */
 @Slf4j
-public class RpcXmlResolver {
+public class XmlResolver {
 
   // xpath表达式
   private final String baseExpression = "/configuration/";
@@ -50,19 +47,30 @@ public class RpcXmlResolver {
       XPath xPath = xPathFactory.newXPath();
 
       // 解析xml,注入配置类
-      configuration.setPort(resolverPort(xPath, document, baseExpression + "port"));
-      configuration.setApplicationName(resolverApplicationName(xPath, document, baseExpression + "applicationName"));
-      RegistryConfig registryConfig = configuration.getRegistryConfig();
-      registryConfig.setUrl(resolverRegistryConfig(xPath, document, baseExpression + "registryConfig", "url"));
-      configuration.setSerializerType(resolverSerializerType(xPath, document, baseExpression + "serializerType", "type"));
-      configuration.setCompressType(resolverCompressType(xPath, document, baseExpression + "compressType", "type"));
-      configuration.setLoadbalancer(resolverLoadbalancer(xPath, document, baseExpression + "loadbalancer", "class"));
-      configuration.setIdWorker(resolverIdWorker(xPath, document, baseExpression + "idWorker", "class", "workerId", "datacenterId"));
+      Integer port = resolverPort(xPath, document, baseExpression + "port");
+      if (port != null) configuration.setPort(port);
 
-      System.out.println(configuration);
+      String applicationName = resolverApplicationName(xPath, document, baseExpression + "applicationName");
+      if (applicationName != null) configuration.setApplicationName(applicationName);
+
+      RegistryConfig registryConfig = configuration.getRegistryConfig();
+      String url = resolverRegistryConfig(xPath, document, baseExpression + "registryConfig", "url");
+      if (url != null) registryConfig.setUrl(url);
+
+      String serializerType = resolverSerializerType(xPath, document, baseExpression + "serializerType", "type");
+      if (serializerType != null) configuration.setSerializerType(serializerType);
+
+      String compressType = resolverCompressType(xPath, document, baseExpression + "compressType", "type");
+      if (compressType != null) configuration.setCompressType(compressType);
+
+      LoadBalancer loadBalancer = resolverLoadbalancer(xPath, document, baseExpression + "loadbalancer", "class");
+      if (loadBalancer != null) configuration.setLoadbalancer(loadBalancer);
+
+      IdWorker idWorker = resolverIdWorker(xPath, document, baseExpression + "idWorker", "class", "workerId", "datacenterId");
+      if (idWorker != null) configuration.setIdWorker(idWorker);
     } catch (ParserConfigurationException | SAXException | IOException e) {
       log.error("加载xml异常", e);
-      throw new RuntimeException(e);
+      throw new XmlParseException("xml解析异常", e);
     }
 
 
@@ -83,10 +91,10 @@ public class RpcXmlResolver {
     String workId = parseString(xPath, document, expression, attr1);
     String datacenterId = parseString(xPath, document, expression, arrt2);
     if (workId == null && datacenterId == null) {
-      return new IdWorker(0,0);
+      return null;
     }
     Class<?>[] classes = {long.class, long.class};
-    return  (IdWorker) parseObject(xPath, document, expression, namedItem, classes, Long.parseLong(workId), Long.parseLong(datacenterId));
+    return (IdWorker) parseObject(xPath, document, expression, namedItem, classes, Long.parseLong(workId), Long.parseLong(datacenterId));
   }
 
 
@@ -102,7 +110,7 @@ public class RpcXmlResolver {
   private LoadBalancer resolverLoadbalancer(XPath xPath, Document document, String expression, String namedItem) {
     LoadBalancer loadbalancer = (LoadBalancer) parseObject(xPath, document, expression, namedItem, null);
     if (loadbalancer == null) {
-      return new RoundRobin();
+      return null;
     }
     return loadbalancer;
   }
@@ -119,7 +127,7 @@ public class RpcXmlResolver {
   private String resolverCompressType(XPath xPath, Document document, String expression, String namedItem) {
     String type = parseString(xPath, document, expression, namedItem);
     if (type == null) {
-      return CompressType.GZIP.getType();
+      return null;
     }
     return type;
   }
@@ -136,7 +144,7 @@ public class RpcXmlResolver {
   private String resolverSerializerType(XPath xPath, Document document, String expression, String namedItem) {
     String type = parseString(xPath, document, expression, namedItem);
     if (type == null) {
-      return SerializeType.HESSIAN.getType();
+      return null;
     }
     return type;
 
@@ -153,8 +161,8 @@ public class RpcXmlResolver {
    */
   private String resolverRegistryConfig(XPath xPath, Document document, String expression, String namedItem) {
     String url = parseString(xPath, document, expression, namedItem);
-    if (url == null){
-      return ZookeeperConstant.DEFAULT_ZK_CONNECTION;
+    if (url == null) {
+      return null;
     }
     return url;
   }
@@ -169,8 +177,8 @@ public class RpcXmlResolver {
    */
   private String resolverApplicationName(XPath xPath, Document document, String expression) {
     String name = parseString(xPath, document, expression);
-    if (name == null){
-      return "default";
+    if (name == null) {
+      return null;
     }
     return name;
   }
@@ -183,10 +191,10 @@ public class RpcXmlResolver {
    * @param expression xpath表达式
    * @return 端口号
    */
-  private int resolverPort(XPath xPath, Document document, String expression) {
+  private Integer resolverPort(XPath xPath, Document document, String expression) {
     String port = parseString(xPath, document, expression);
-    if (port == null){
-      return 8091;
+    if (port == null) {
+      return null;
     }
     return Integer.parseInt(port);
   }
@@ -212,13 +220,13 @@ public class RpcXmlResolver {
     try {
       XPathExpression compile = xPath.compile(expression);
       Node node = (Node) compile.evaluate(document, XPathConstants.NODE);
-      if (node == null){
+      if (node == null) {
         return null;
       }
       return node.getAttributes().getNamedItem(NamedItem).getNodeValue();
     } catch (XPathExpressionException e) {
       log.error("xml节点解析异常", e);
-      throw new RuntimeException(e);
+      throw new XmlParseException("xml解析异常", e);
     }
   }
 
@@ -235,13 +243,13 @@ public class RpcXmlResolver {
     try {
       XPathExpression compile = xPath.compile(expression);
       Node node = (Node) compile.evaluate(document, XPathConstants.NODE);
-      if (node == null){
+      if (node == null) {
         return null;
       }
       return node.getTextContent();
     } catch (XPathExpressionException e) {
       log.error("xml节点解析异常", e);
-      throw new RuntimeException(e);
+      throw new XmlParseException("xml解析异常", e);
     }
   }
 
@@ -281,7 +289,7 @@ public class RpcXmlResolver {
     } catch (XPathExpressionException | ClassNotFoundException | NoSuchMethodException | InstantiationException |
              IllegalAccessException | InvocationTargetException e) {
       log.error("xml节点解析异常", e);
-      throw new RuntimeException(e);
+      throw new XmlParseException("xml解析异常", e);
     }
   }
 

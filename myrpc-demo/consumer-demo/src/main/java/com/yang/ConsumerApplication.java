@@ -25,7 +25,6 @@ public class ConsumerApplication {
             // 注册服务
             .reference(referenceConfig);
 
-
     TestService testService = referenceConfig.get();
     while (true) {
 
