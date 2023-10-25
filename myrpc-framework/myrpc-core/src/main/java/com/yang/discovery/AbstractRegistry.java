@@ -1,10 +1,7 @@
 package com.yang.discovery;
 
-import com.yang.config.ServiceConfig;
-import lombok.extern.slf4j.Slf4j;
-
-
+/**
+ * 抽象类实现接口
+ */
 public abstract class AbstractRegistry implements Registry{
-
-
 }

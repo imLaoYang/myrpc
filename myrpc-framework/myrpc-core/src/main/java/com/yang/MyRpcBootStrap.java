@@ -166,6 +166,7 @@ public class MyRpcBootStrap {
       // 返回的结果
       ChannelFuture channelFuture = serverBootstrap.bind(port).sync();
       log.info("netty已经连接绑定--->{}", port);
+
       channelFuture.channel().closeFuture().sync();
     } catch (InterruptedException e) {
       throw new RuntimeException(e);

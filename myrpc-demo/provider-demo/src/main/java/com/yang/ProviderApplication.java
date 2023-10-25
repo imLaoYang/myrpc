@@ -14,5 +14,6 @@ public class ProviderApplication {
 //            .protocol(new ProtocolConfig(SerializeType.HESSIAN)) // 定义序列化协议
             .scan("com.yang.impl")
             .start();  // 启动netty
+
   }
 }

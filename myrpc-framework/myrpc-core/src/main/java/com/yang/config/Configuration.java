@@ -1,6 +1,7 @@
 package com.yang.config;
 
-import com.yang.config.xml.RpcXmlResolver;
+import com.yang.config.spi.SpiResolver;
+import com.yang.config.xml.XmlResolver;
 import com.yang.constant.ZookeeperConstant;
 import com.yang.enums.CompressType;
 import com.yang.enums.SerializeType;
@@ -26,6 +27,7 @@ public class Configuration {
 
   // 序列化协议配置
   private String serializerType = SerializeType.HESSIAN.getType();
+
   // 压缩协议
   private String compressType = CompressType.GZIP.getType();
 
@@ -38,15 +40,21 @@ public class Configuration {
   public Configuration() {
 
 
+    // spi读取配置
+    SpiResolver spiResolver = new SpiResolver();
+    spiResolver.loadSpi(this);
+
+
     // 读取xml配置
-    RpcXmlResolver rpcXmlResolver = new RpcXmlResolver();
-    rpcXmlResolver.loadXml(this);
+    XmlResolver xmlResolver = new XmlResolver();
+    xmlResolver.loadXml(this);
+
 
   }
 
   public static void main(String[] args) {
-    new Configuration();
+    Configuration configuration = new Configuration();
+    System.out.println("configuration = " + configuration);
   }
-
 
 }

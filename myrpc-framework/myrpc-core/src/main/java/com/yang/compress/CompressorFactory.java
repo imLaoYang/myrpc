@@ -4,6 +4,7 @@ import com.yang.compress.impl.GzipCompressor;
 import com.yang.enums.CompressType;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Enumeration;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -23,21 +24,22 @@ public class CompressorFactory {
   static {
     CompressorWrapper gzip = new CompressorWrapper(CompressType.GZIP, new GzipCompressor());
 
-    COMPRESS_CACHE_CODE.put(CompressType.GZIP.getCode(),gzip);
+    COMPRESS_CACHE_CODE.put(CompressType.GZIP.getCode(), gzip);
 
-    COMPRESS_CACHE.put(CompressType.GZIP.getType(),gzip);
+    COMPRESS_CACHE.put(CompressType.GZIP.getType(), gzip);
 
 
   }
 
   /**
    * 通过名称获取
+   *
    * @param type 压缩协议名
    * @return compressor
    */
-  public static CompressorWrapper getCompressWrapper(String type){
+  public static CompressorWrapper getCompressWrapper(String type) {
     CompressorWrapper compressor = COMPRESS_CACHE.get(type);
-    if (compressor == null){
+    if (compressor == null) {
       log.warn("找不到指定协议,使用默认gzip压缩");
       return COMPRESS_CACHE.get(CompressType.GZIP.getType());
     }
@@ -46,12 +48,13 @@ public class CompressorFactory {
 
   /**
    * 通过编号获取
+   *
    * @param code 压缩编号
    * @return compressor
    */
-  public static CompressorWrapper getCompressWrapper(byte code){
+  public static CompressorWrapper getCompressWrapper(byte code) {
     CompressorWrapper compressor = COMPRESS_CACHE_CODE.get(code);
-    if (compressor == null){
+    if (compressor == null) {
       log.warn("找不到指定协议,使用默认gzip压缩");
       return COMPRESS_CACHE.get(CompressType.GZIP.getType());
     }
@@ -59,5 +62,23 @@ public class CompressorFactory {
   }
 
 
+  /**
+   * 添加一个自定义压缩器
+   *
+   * @param type       类型名称
+   * @param compressor 实现的实例
+   */
+  public static void addCompress(String type, Compressor compressor) {
+    Enumeration<Byte> keys = COMPRESS_CACHE_CODE.keys();
+    Byte code = 0;
+    if (keys.hasMoreElements()) {
+      code = keys.nextElement();
+    }
+    code++;
+    CompressorWrapper compressorWrapper = new CompressorWrapper(code, type, compressor);
+    COMPRESS_CACHE_CODE.put(code, compressorWrapper);
+    COMPRESS_CACHE.put(type, compressorWrapper);
+
+  }
 
 }
