@@ -236,6 +236,26 @@ public class MyRpcBootStrap {
   }
 
   /**
+   * todo 未完成
+   */
+  public MyRpcBootStrap scanApi(String packageName){
+    // 1.通过包名获得所有类的全限定名
+    ImmutableSet<ClassPath.ClassInfo> allClass = ClassPathUtil.getAllClass(Thread.currentThread().getContextClassLoader(), packageName);
+
+    Class[] classes= {};
+    allClass.forEach(classInfo -> {
+      for (int i = 0; i < classes.length; i++) {
+        if (classes[i] == null) {
+          classes[i] = classInfo.getClass();
+        }
+      }
+    });
+
+    return this;
+
+  }
+
+  /**
    * 指定序列化协议类型
    *
    * @param serializeType 序列化协议枚举类
@@ -255,7 +275,6 @@ public class MyRpcBootStrap {
   public MyRpcBootStrap compress(CompressType compressType) {
     configuration.setCompressType(compressType.getType());
     return this;
-
   }
 
   public Configuration getConfiguration(){
