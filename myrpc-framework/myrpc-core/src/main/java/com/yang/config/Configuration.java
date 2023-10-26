@@ -7,8 +7,14 @@ import com.yang.enums.CompressType;
 import com.yang.enums.SerializeType;
 import com.yang.loadbalance.LoadBalancer;
 import com.yang.loadbalance.impl.RoundRobin;
+import com.yang.protection.CircuitBreaker;
+import com.yang.protection.RateLimiter;
 import com.yang.utils.IdWorker;
 import lombok.Data;
+
+import java.net.SocketAddress;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 全局配置类
@@ -37,6 +43,12 @@ public class Configuration {
   // 雪花ID,用作请求id
   private IdWorker idWorker = new IdWorker(0, 0);
 
+  // ip限流器
+  private final Map<SocketAddress, RateLimiter> IPRateLimiter = new ConcurrentHashMap<>();
+
+  // ip熔断器
+  private final Map<SocketAddress, CircuitBreaker> IPCircuitBreaker = new ConcurrentHashMap<>();
+
   public Configuration() {
 
 
@@ -52,9 +64,5 @@ public class Configuration {
 
   }
 
-  public static void main(String[] args) {
-    Configuration configuration = new Configuration();
-    System.out.println("configuration = " + configuration);
-  }
 
 }

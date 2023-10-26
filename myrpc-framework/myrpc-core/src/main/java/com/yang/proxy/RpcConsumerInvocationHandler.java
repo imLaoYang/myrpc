@@ -1,6 +1,7 @@
 package com.yang.proxy;
 
 import com.yang.MyRpcBootStrap;
+import com.yang.annotations.Try;
 import com.yang.compress.CompressorFactory;
 import com.yang.config.Configuration;
 import com.yang.discovery.Registry;
@@ -8,6 +9,7 @@ import com.yang.enums.RequestType;
 import com.yang.exception.NetException;
 import com.yang.loadbalance.LoadBalancer;
 import com.yang.netty.NettyBootStrapInitializer;
+import com.yang.protection.CircuitBreaker;
 import com.yang.serialize.SerializerFactory;
 import com.yang.transport.message.RequestPayload;
 import com.yang.transport.message.RpcRequest;
@@ -21,6 +23,10 @@ import lombok.extern.slf4j.Slf4j;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
+import java.net.SocketAddress;
+import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -50,59 +56,110 @@ public class RpcConsumerInvocationHandler implements InvocationHandler {
    */
   @Override
   public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+    Try annotation = method.getAnnotation(Try.class);
+    int tryTimes = 2;
+    long interval = 2000;
+    if (annotation != null) {
+      tryTimes = annotation.tryTimes();
+      interval = annotation.interval();
+    }
+    CircuitBreaker circuitBreaker = null;
+    while (true) {
+      try {
+
+        // 封装报文
+        RequestPayload requestPayload = RequestPayload.builder()
+                .interfaceName(getInterfaces().getName())
+                .methodName(method.getName())
+                .parameterTypes(method.getParameterTypes())
+                .parameterValue(args).build();
 
 
-    // 封装报文
-    RequestPayload requestPayload = RequestPayload.builder()
-            .interfaceName(getInterfaces().getName())
-            .methodName(method.getName())
-            .parameterTypes(method.getParameterTypes())
-            .parameterValue(args).build();
+        Configuration configuration = MyRpcBootStrap.getInstance().getConfiguration();
+        String serializerName = configuration.getSerializerType();
+        String compressName = configuration.getCompressType();
+        byte serializeType = SerializerFactory.getSerializer(serializerName).getSerializeType().getCode();
+        byte compressType = CompressorFactory.getCompressWrapper(compressName).getCompressType().getCode();
+        long requestId = configuration.getIdWorker().nextId();
+        log.debug("发送的requestId---->{}", requestId);
+        RpcRequest rpcRequest = RpcRequest.builder()
+                .requestId(requestId)
+                .requestType(RequestType.REQUEST.getId())
+                .compressType(compressType)
+                .serializeType(serializeType)
+                .requestPayload(requestPayload).build();
+
+        // 存入本地线程
+        MyRpcBootStrap.REQUEST_THREADLOCAL.set(rpcRequest);
+
+        String serviceName = getInterfaces().getName();
+        // 负载均衡器
+        LoadBalancer loadbalancer = configuration.getLoadbalancer();
+        InetSocketAddress address = loadbalancer.selectServiceAddress(serviceName);
+        log.info("{} 拉取的服务地址为----》{}", serviceName, address);
+
+        // 拿到熔断器
+        Map<SocketAddress, CircuitBreaker> ipCircuitBreaker = MyRpcBootStrap.getInstance().getConfiguration().getIPCircuitBreaker();
+        circuitBreaker = ipCircuitBreaker.get(address);
+        if (circuitBreaker == null) {
+          circuitBreaker = new CircuitBreaker(10, 0.5F);
+          ipCircuitBreaker.put(address, circuitBreaker);
+        }
+
+        if (circuitBreaker.isOpen()) {
+
+          // 定时重置熔断器
+          Timer timer = new Timer();
+          timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+              MyRpcBootStrap.getInstance().getConfiguration().getIPCircuitBreaker().get(address).reset();
+            }
+          }, 3000);
+
+        }
 
 
-    Configuration configuration = MyRpcBootStrap.getInstance().getConfiguration();
-    String serializerName = configuration.getSerializerType();
-    String compressName = configuration.getCompressType();
-    byte serializeType = SerializerFactory.getSerializer(serializerName).getSerializeType().getCode();
-    byte compressType = CompressorFactory.getCompressWrapper(compressName).getCompressType().getCode();
-    long requestId = configuration.getIdWorker().nextId();
-    log.debug("发送的requestId---->{}", requestId);
-    RpcRequest rpcRequest = RpcRequest.builder()
-            .requestId(requestId)
-            .requestType(RequestType.REQUEST.getId())
-            .compressType(compressType)
-            .serializeType(serializeType)
-            .requestPayload(requestPayload).build();
-
-    // 存入本地线程
-    MyRpcBootStrap.REQUEST_THREADLOCAL.set(rpcRequest);
+        // 3.通过地址连接netty,并且拿到一个可用channel
+        Channel channel = getAvailableChannel(address);
+        log.debug("获得了channel{}", channel);
 
 
-    String serviceName = getInterfaces().getName();
-    // 负载均衡器
-    LoadBalancer loadbalancer = configuration.getLoadbalancer();
-    InetSocketAddress address = loadbalancer.selectServiceAddress(serviceName);
-    log.info("{} 拉取的服务地址为----》{}", serviceName, address);
+        // 4.发送请求,携带信息（接口，参数列表)
+        CompletableFuture<Object> completableFuture = new CompletableFuture<>();
+        // 放入缓存让channelHandler异步调用发送的结果
+        MyRpcBootStrap.PENDING_REQUEST.put(rpcRequest.getRequestId(), completableFuture);
+        // 异步发送报文
+        channel.writeAndFlush(rpcRequest).addListener((ChannelFutureListener) promise -> {
+          // 如果失败
+          if (!promise.isSuccess()) {
+            completableFuture.completeExceptionally(promise.cause());
+            throw new NetException("请求未成功");
+          }
+        });
+        // get方法阻塞（拿到的是compete方法的参数），等待complete方法的执行
+        Object result = completableFuture.get(5, TimeUnit.SECONDS);
+        // 记录请求成功数
+        circuitBreaker.recordRequestNum();
+        return result;
+      } catch (Exception e) {
+        circuitBreaker.recordRequestNum();
+        tryTimes--;
+        log.error("{}远程调用失败,正在重试", method.getName());
 
-    // 3.通过地址连接netty,并且拿到一个可用channel
-    Channel channel = getAvailableChannel(address);
-    log.debug("获得了channel{}", channel);
-
-    // 4.发送请求,携带信息（接口，参数列表)
-    CompletableFuture<Object> completableFuture = new CompletableFuture<>();
-    // 放入缓存让channelHandler异步调用发送的结果
-    MyRpcBootStrap.PENDING_REQUEST.put(rpcRequest.getRequestId(), completableFuture);
-    // 异步发送报文
-    channel.writeAndFlush(rpcRequest).addListener((ChannelFutureListener) promise -> {
-      // 如果失败
-      if (!promise.isSuccess()) {
-        completableFuture.completeExceptionally(promise.cause());
-        throw new NetException("请求未成功");
+        try {
+          Thread.sleep(interval);
+        } catch (InterruptedException exception) {
+          log.error("重试时发送异常");
+        }
+        if (tryTimes < 0) {
+          break;
+        }
       }
-    });
-    // get方法阻塞（拿到的是compete方法的参数），等待complete方法的执行
-    return completableFuture.get(5, TimeUnit.SECONDS);
 
+    }
+    log.error("[{}]远程调用失败", method.getName());
+    throw new RuntimeException("[" + method.getName() + "方法调用失败");
   }
 
   /**
@@ -146,6 +203,4 @@ public class RpcConsumerInvocationHandler implements InvocationHandler {
     }
     return channel;
   }
-
-
 }

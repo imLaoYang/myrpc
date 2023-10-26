@@ -4,6 +4,8 @@ import com.yang.MyRpcBootStrap;
 import com.yang.config.ServiceConfig;
 import com.yang.enums.RequestType;
 import com.yang.enums.ResponseCode;
+import com.yang.protection.RateLimiter;
+import com.yang.protection.TokenBuketRateLimiter;
 import com.yang.transport.message.RequestPayload;
 import com.yang.transport.message.RpcRequest;
 import com.yang.transport.message.RpcResponse;
@@ -13,6 +15,8 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.SocketAddress;
+import java.util.Map;
 
 /**
  * Provider收到方法调用请求,使用反射进行方法调用
@@ -21,24 +25,53 @@ import java.lang.reflect.Method;
 public class MethodInvokeHandler extends SimpleChannelInboundHandler<RpcRequest> {
   @Override
   protected void channelRead0(ChannelHandlerContext ctx, RpcRequest rpcRequest) throws Exception {
-    // 1.拿到requestPayload
-    RequestPayload requestPayload = rpcRequest.getRequestPayload();
 
-    Object result = null;
-    if (rpcRequest.getRequestType() == RequestType.REQUEST.getId()) {
-      // 2.反射调用具体方法
-      result = callTargetMethod(requestPayload);
-    }
-    // 3.封装响应
+    // 封装部分响应
     RpcResponse rpcResponse = new RpcResponse();
     rpcResponse.setRequestId(rpcRequest.getRequestId());
     rpcResponse.setCompressType(rpcRequest.getCompressType());
     rpcResponse.setSerializeType(rpcRequest.getSerializeType());
-    rpcResponse.setCode(ResponseCode.SUCCEED.getCode());
-    if (result != null) {
-      rpcResponse.setBody(result);
+
+    // 限流判断
+    Map< SocketAddress, RateLimiter> ipRateLimiter = MyRpcBootStrap.getInstance().getConfiguration().getIPRateLimiter();
+    SocketAddress socketAddress = ctx.channel().remoteAddress();
+    RateLimiter rateLimiter = ipRateLimiter.get(socketAddress);
+    if (rateLimiter == null){
+      rateLimiter = new TokenBuketRateLimiter(300,200);
+      ipRateLimiter.put(socketAddress,rateLimiter);
     }
-    log.debug("响应封装完成rpcResponse-->{}", rpcResponse);
+
+    if ( !rateLimiter.allowRequest()){
+      // 限流
+      rpcResponse.setCode(ResponseCode.RATE_LIMITER.getCode());
+    }else {
+
+      try {
+
+
+        // 拿到requestPayload
+        RequestPayload requestPayload = rpcRequest.getRequestPayload();
+        Object result = null;
+        if (rpcRequest.getRequestType() == RequestType.REQUEST.getId()) {
+          // 反射调用具体方法
+          result = callTargetMethod(requestPayload);
+        } else {
+          // 心跳检测
+          rpcResponse.setCode(ResponseCode.SUCCEED_HEART_BEAT.getCode());
+        }
+        rpcResponse.setCode(ResponseCode.SUCCEED.getCode());
+        if (result != null) {
+          rpcResponse.setBody(result);
+        }
+        log.debug("响应封装完成rpcResponse-->{}", rpcResponse);
+
+      }catch (Exception e){
+        rpcResponse.setCode(ResponseCode.FAIL.getCode());
+        log.error("方法调用失败",e);
+      }
+
+    }
+
 
     // 4.发送回consumer
     ctx.channel().writeAndFlush(rpcResponse);

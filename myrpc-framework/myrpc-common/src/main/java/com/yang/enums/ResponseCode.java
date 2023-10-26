@@ -5,8 +5,10 @@ package com.yang.enums;
  */
 public enum ResponseCode {
 
-  SUCCEED((byte) 1,"成功"),
-  FAIL((byte) 1,"失败");
+  SUCCEED((byte) 20,"成功"),
+  SUCCEED_HEART_BEAT((byte) 21,"心跳检测成功"),
+  RATE_LIMITER((byte) 30,"服务端限流"),
+  FAIL((byte) 50,"失败");
 
 
   private byte code;
