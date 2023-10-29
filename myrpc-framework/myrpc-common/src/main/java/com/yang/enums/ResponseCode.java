@@ -8,7 +8,10 @@ public enum ResponseCode {
   SUCCEED((byte) 20,"成功"),
   SUCCEED_HEART_BEAT((byte) 21,"心跳检测成功"),
   RATE_LIMITER((byte) 30,"服务端限流"),
-  FAIL((byte) 50,"失败");
+  FAIL((byte) 50,"失败"),
+
+  CLOSE(((byte) 10),"服务器关闭中");
+
 
 
   private byte code;

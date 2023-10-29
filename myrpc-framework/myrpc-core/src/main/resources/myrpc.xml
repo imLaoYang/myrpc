@@ -2,7 +2,7 @@
 <!DOCTYPE configuration SYSTEM "myrpc-config.dtd">
 <configuration>
 
-<!--    <port>8099</port>-->
+    <port>8097</port>
 
 <!--    <applicationName>myrpc</applicationName>-->
 

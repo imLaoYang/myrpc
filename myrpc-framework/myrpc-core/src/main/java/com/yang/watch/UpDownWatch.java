@@ -35,7 +35,7 @@ public class UpDownWatch implements Watcher {
       String serviceName = getServiceName(event.getPath());
       Registry registry = MyRpcBootStrap.getInstance().getConfiguration().getRegistryConfig().getRegistry();
       // 重新拉取服务列表
-      List<InetSocketAddress> addressList = registry.lookup(serviceName);
+      List<InetSocketAddress> addressList = registry.lookup(serviceName,MyRpcBootStrap.getInstance().getConfiguration().getGroup());
       // 处理上线
       addressList.forEach(address -> {
 

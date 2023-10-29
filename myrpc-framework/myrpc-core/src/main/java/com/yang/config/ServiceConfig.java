@@ -17,6 +17,9 @@ public class ServiceConfig<T> {
   // 接口的实现类
   private Object impl;
 
+  // 分组信息
+  private String group;
+
 
 
 

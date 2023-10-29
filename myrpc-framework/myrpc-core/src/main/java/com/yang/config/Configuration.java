@@ -28,6 +28,9 @@ public class Configuration {
   // 默认配置信息
   private String applicationName = "myrpc";
 
+  // 分组信息
+  private  String group = "default";
+
   // 注册中心
   private RegistryConfig registryConfig = new RegistryConfig(ZookeeperConstant.DEFAULT_ZK_CONNECTION);
 

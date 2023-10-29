@@ -33,6 +33,7 @@ public class ReferenceConfig<T> {
 
     Object proxyInstance = Proxy.newProxyInstance(classLoader, interfaces, new RpcConsumerInvocationHandler(registry,interfaces[0]));
 
+
     return (T) proxyInstance;
   }
 }

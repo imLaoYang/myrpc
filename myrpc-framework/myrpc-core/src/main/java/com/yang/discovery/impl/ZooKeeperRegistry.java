@@ -43,7 +43,7 @@ public class ZooKeeperRegistry extends AbstractRegistry {
   }
 
 
-   /**
+  /**
    * 发布注册
    *
    * @param serviceConfig 服务配置内容
@@ -83,10 +83,17 @@ public class ZooKeeperRegistry extends AbstractRegistry {
       ZooKeeperUtils.createNode(zooKeeper, zookeeperNode, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT, null);
     }
 
+    // 创建分组节点
+    String groupNode = parentNode + "/" + serviceConfig.getGroup();
+    if (!ZooKeeperUtils.exists(zooKeeper, groupNode, null)) {
+      ZooKeeperNode zooKeeperNode = new ZooKeeperNode(groupNode, null);
+      ZooKeeperUtils.createNode(zooKeeper, zooKeeperNode, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT, null);
+    }
+
 
     // 2.创建临时节点
     String ip = NetUtils.getLocalIpByNetCard();
-    String tempNode = parentNode + "/" + ip + ":" + port;
+    String tempNode = groupNode + "/" + ip + ":" + port;
     if (!ZooKeeperUtils.exists(zooKeeper, tempNode, null)) {
       ZooKeeperNode zookeeperNode = new ZooKeeperNode(tempNode, null);
       ZooKeeperUtils.createNode(zooKeeper, zookeeperNode, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL, null);
@@ -101,9 +108,9 @@ public class ZooKeeperRegistry extends AbstractRegistry {
    * @return ip
    */
   @Override
-  public List<InetSocketAddress> lookup(String serviceName) {
+  public List<InetSocketAddress> lookup(String serviceName, String group) {
     // 父路径
-    String path = ZookeeperConstant.DEFAULT_PROVIDER_PATH + "/" + serviceName;
+    String path = ZookeeperConstant.DEFAULT_PROVIDER_PATH + "/" + serviceName + "/" + group;
     List<String> ipAndPort = ZooKeeperUtils.getChildren(zooKeeper, path, new UpDownWatch());
     // stream流映射
     List<InetSocketAddress> inetSocketAddresses = ipAndPort.stream().map(item -> {

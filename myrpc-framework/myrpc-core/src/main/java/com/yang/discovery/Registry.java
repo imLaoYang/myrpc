@@ -29,7 +29,7 @@ public interface Registry {
    *
    * @return ip地址
    */
-  List<InetSocketAddress> lookup(String serviceName);
+  List<InetSocketAddress> lookup(String serviceName,String group);
 
 
 }

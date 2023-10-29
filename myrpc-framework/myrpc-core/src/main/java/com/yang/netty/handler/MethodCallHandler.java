@@ -2,6 +2,7 @@ package com.yang.netty.handler;
 
 import com.yang.MyRpcBootStrap;
 import com.yang.config.ServiceConfig;
+import com.yang.core.CloseHolder;
 import com.yang.enums.RequestType;
 import com.yang.enums.ResponseCode;
 import com.yang.protection.RateLimiter;
@@ -22,9 +23,11 @@ import java.util.Map;
  * Provider收到方法调用请求,使用反射进行方法调用
  */
 @Slf4j
-public class MethodInvokeHandler extends SimpleChannelInboundHandler<RpcRequest> {
+public class MethodCallHandler extends SimpleChannelInboundHandler<RpcRequest> {
   @Override
   protected void channelRead0(ChannelHandlerContext ctx, RpcRequest rpcRequest) throws Exception {
+    // 请求计数器加1
+    CloseHolder.REQUEST_COUNTER.increment();
 
     // 封装部分响应
     RpcResponse rpcResponse = new RpcResponse();
@@ -32,12 +35,21 @@ public class MethodInvokeHandler extends SimpleChannelInboundHandler<RpcRequest>
     rpcResponse.setCompressType(rpcRequest.getCompressType());
     rpcResponse.setSerializeType(rpcRequest.getSerializeType());
 
+    // 判断挡板是否开启
+    if (CloseHolder.BAFFLE_PLATE.get()){
+      rpcResponse.setCode(ResponseCode.CLOSE.getCode());
+      ctx.channel().writeAndFlush(rpcResponse);
+      // 请求计数器减一
+      CloseHolder.REQUEST_COUNTER.decrement();
+      return;
+    }
+
     // 限流判断
-    Map< SocketAddress, RateLimiter> ipRateLimiter = MyRpcBootStrap.getInstance().getConfiguration().getIPRateLimiter();
+    Map<SocketAddress, RateLimiter> ipRateLimiter = MyRpcBootStrap.getInstance().getConfiguration().getIPRateLimiter();
     SocketAddress socketAddress = ctx.channel().remoteAddress();
     RateLimiter rateLimiter = ipRateLimiter.get(socketAddress);
     if (rateLimiter == null){
-      rateLimiter = new TokenBuketRateLimiter(300,200);
+      rateLimiter = new TokenBuketRateLimiter(100,2);
       ipRateLimiter.put(socketAddress,rateLimiter);
     }
 
@@ -47,8 +59,6 @@ public class MethodInvokeHandler extends SimpleChannelInboundHandler<RpcRequest>
     }else {
 
       try {
-
-
         // 拿到requestPayload
         RequestPayload requestPayload = rpcRequest.getRequestPayload();
         Object result = null;
@@ -75,6 +85,8 @@ public class MethodInvokeHandler extends SimpleChannelInboundHandler<RpcRequest>
 
     // 4.发送回consumer
     ctx.channel().writeAndFlush(rpcResponse);
+    // 请求计数器减一
+    CloseHolder.REQUEST_COUNTER.decrement();
   }
 
   /**

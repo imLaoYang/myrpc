@@ -20,7 +20,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.stream.Collectors;
 
 /**
  * 心跳检测
@@ -37,7 +36,7 @@ public class HeartBeatDetector {
   public static void detect(String serviceName) {
     // 注册中心拉取服务列表
     Registry registry = MyRpcBootStrap.getInstance().getConfiguration().getRegistryConfig().getRegistry();
-    List<InetSocketAddress> addressList = registry.lookup(serviceName);
+    List<InetSocketAddress> addressList = registry.lookup(serviceName, MyRpcBootStrap.getInstance().getConfiguration().getGroup());
 
     // 建立连接
     addressList.forEach(address -> {
@@ -55,9 +54,7 @@ public class HeartBeatDetector {
     });
 
     // 定时发送消息
-    Thread thread = new Thread(() -> {
-      new Timer().scheduleAtFixedRate(new DetectTask(serviceName), 0, 2000);
-    }, "HeartBeatDetector_Thread");
+    Thread thread = new Thread(() -> new Timer().scheduleAtFixedRate(new DetectTask(serviceName), 0, 2000), "HeartBeatDetector_Thread");
     // 设置为守护线程
     thread.setDaemon(true);
     thread.start();
@@ -137,14 +134,11 @@ public class HeartBeatDetector {
                 MyRpcBootStrap.CHANNEL_CACHE.remove(address);
                 log.warn("{}地址已经失效", address);
                 // 重新做负载均衡
-                Registry registry = configuration.getRegistryConfig().getRegistry();
                 LoadBalancer loadbalancer = configuration.getLoadbalancer();
-                List<InetSocketAddress> lookup = registry.lookup(serviceName);
 
-                // MyRpcBootStrap.CHANNEL_CACHE::containsKey ---> addressList的每个值是否包含key
-                List<InetSocketAddress> addressList = lookup.stream().filter(MyRpcBootStrap.CHANNEL_CACHE::containsKey).collect(Collectors.toList());
+                List<InetSocketAddress> addressList = new ArrayList<>(MyRpcBootStrap.CHANNEL_CACHE.keySet());
 
-                loadbalancer.reLoadBalance(serviceName,addressList);
+                loadbalancer.reLoadBalance(serviceName, addressList);
               }
 
               // 等待随机时间后重试,防止集体重试
@@ -158,7 +152,7 @@ public class HeartBeatDetector {
 
             long time = endTime - starTime;
             MyRpcBootStrap.ANSWER_TIME_CHANNEL.put(time, channel);
-//            log.debug("{}响应时间为---->[{}]", address, time);
+            log.debug("{}响应时间为---->[{}]", address, time);
             break;
           }
         }
