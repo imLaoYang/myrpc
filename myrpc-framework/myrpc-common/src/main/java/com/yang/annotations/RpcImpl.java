@@ -9,4 +9,8 @@ import java.lang.annotation.*;
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface RpcImpl {
+
+  // 分组信息
+  String group() default "default";
+
 }

@@ -38,7 +38,7 @@ public abstract class AbstractLoadBalancer implements LoadBalancer {
 
       Registry registry = MyRpcBootStrap.getInstance().getConfiguration().getRegistryConfig().getRegistry();
       // 拿到Registry
-      List<InetSocketAddress> addresseList = registry.lookup(serviceName);
+      List<InetSocketAddress> addresseList = registry.lookup(serviceName,MyRpcBootStrap.getInstance().getConfiguration().getGroup());
       selector = getSelector(addresseList);
 
       // 设置SELECTOR_CACHE

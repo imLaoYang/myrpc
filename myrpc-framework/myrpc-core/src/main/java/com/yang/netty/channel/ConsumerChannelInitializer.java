@@ -2,7 +2,7 @@ package com.yang.netty.channel;
 
 
 import com.yang.exception.NetException;
-import com.yang.netty.handler.inbound.ConsumerChannelInboundHandler;
+import com.yang.netty.handler.inbound.ResponseHandler;
 import com.yang.netty.handler.inbound.RpcResponseDecode;
 import com.yang.netty.handler.outbound.RpcRequestEncode;
 import io.netty.channel.ChannelHandlerContext;
@@ -29,7 +29,7 @@ public class ConsumerChannelInitializer extends ChannelInitializer<SocketChannel
             .addLast(new RpcRequestEncode())
             // 收到Provider响应后的解码器
             .addLast(new RpcResponseDecode())
-            .addLast(new ConsumerChannelInboundHandler());
+            .addLast(new ResponseHandler());
 
   }
 

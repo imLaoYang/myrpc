@@ -5,6 +5,7 @@ import com.google.common.reflect.ClassPath;
 import com.yang.annotations.RpcImpl;
 import com.yang.config.*;
 import com.yang.core.HeartBeatDetector;
+import com.yang.core.ServerCloseHook;
 import com.yang.discovery.Registry;
 import com.yang.enums.CompressType;
 import com.yang.enums.SerializeType;
@@ -127,7 +128,11 @@ public class MyRpcBootStrap {
    */
   public MyRpcBootStrap publish(ServiceConfig<?> serviceConfig) {
     // 放入接口和类缓存
-    SERVERS_MAP.put(serviceConfig.getInterfaces().getName(), serviceConfig);
+    SERVERS_MAP.put(serviceConfig.getInterfaces().getName(),serviceConfig);
+
+    // 设置分组信息
+    configuration.setGroup(serviceConfig.getGroup());
+
     // 向注册中心注册服务
     configuration.getRegistryConfig().getRegistry().register(serviceConfig, configuration.getPort());
 
@@ -151,6 +156,10 @@ public class MyRpcBootStrap {
    * 启动netty服务
    */
   public void start() {
+
+    // 注册关闭连接时的线程钩子(当客户端关闭时会触发这个钩子函数)
+    Runtime.getRuntime().addShutdownHook(new ServerCloseHook());
+
     // 处理连接
     NioEventLoopGroup boss = new NioEventLoopGroup();
     // 处理io
@@ -195,6 +204,10 @@ public class MyRpcBootStrap {
     classList.forEach(clazz ->{
       // 拿到接口名
       Class<?>[] interfaces = clazz.getInterfaces();
+      // 拿到分组信息
+      RpcImpl annotation = clazz.getAnnotation(RpcImpl.class);
+      String group = annotation.group();
+
       Object impls =null;
       try {
         // new实例
@@ -207,6 +220,7 @@ public class MyRpcBootStrap {
         ServiceConfig<Object> serviceConfig = new ServiceConfig<>();
         serviceConfig.setInterfaces(inteface);
         serviceConfig.setImpl(impls);
+        serviceConfig.setGroup(group);
         // 发布
         publish(serviceConfig);
         log.info("通过包扫描,[{}]已经发布",inteface);
@@ -235,25 +249,7 @@ public class MyRpcBootStrap {
     return this;
   }
 
-  /**
-   * todo 未完成
-   */
-  public MyRpcBootStrap scanApi(String packageName){
-    // 1.通过包名获得所有类的全限定名
-    ImmutableSet<ClassPath.ClassInfo> allClass = ClassPathUtil.getAllClass(Thread.currentThread().getContextClassLoader(), packageName);
 
-    Class[] classes= {};
-    allClass.forEach(classInfo -> {
-      for (int i = 0; i < classes.length; i++) {
-        if (classes[i] == null) {
-          classes[i] = classInfo.getClass();
-        }
-      }
-    });
-
-    return this;
-
-  }
 
   /**
    * 指定序列化协议类型

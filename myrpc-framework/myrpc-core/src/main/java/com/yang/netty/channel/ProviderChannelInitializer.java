@@ -1,6 +1,6 @@
 package com.yang.netty.channel;
 
-import com.yang.netty.handler.MethodInvokeHandler;
+import com.yang.netty.handler.MethodCallHandler;
 import com.yang.netty.handler.inbound.RpcRequestDecode;
 import com.yang.netty.handler.outbound.RpcResponseEncode;
 import io.netty.channel.ChannelInitializer;
@@ -18,7 +18,7 @@ public class  ProviderChannelInitializer extends ChannelInitializer<SocketChanne
             // 收到请求时,报文解码器
             .addLast(new RpcRequestDecode())
             // 方法调用
-            .addLast(new MethodInvokeHandler())
+            .addLast(new MethodCallHandler())
             // 发送响应,编码器
             .addLast(new RpcResponseEncode());
 //            .addLast(new ProviderChannelInboundHandler());
