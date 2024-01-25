@@ -1,4 +1,4 @@
-package com.yang.netty.handler.inbound;
+package com.yang.netty.response;
 
 import com.yang.MyRpcBootStrap;
 import com.yang.enums.ResponseCode;

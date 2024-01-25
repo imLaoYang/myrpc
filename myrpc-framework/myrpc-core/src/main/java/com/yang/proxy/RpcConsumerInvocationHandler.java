@@ -40,6 +40,7 @@ import java.util.concurrent.TimeoutException;
 @Slf4j
 @AllArgsConstructor
 public class RpcConsumerInvocationHandler implements InvocationHandler {
+
   // 注册中心
   private Registry registry;
   // 接口
@@ -56,6 +57,7 @@ public class RpcConsumerInvocationHandler implements InvocationHandler {
    */
   @Override
   public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+    // 重试
     Try annotation = method.getAnnotation(Try.class);
     int tryTimes = 2;
     long interval = 2000;

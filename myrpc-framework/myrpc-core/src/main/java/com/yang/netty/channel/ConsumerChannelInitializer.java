@@ -2,9 +2,9 @@ package com.yang.netty.channel;
 
 
 import com.yang.exception.NetException;
-import com.yang.netty.handler.inbound.ResponseHandler;
-import com.yang.netty.handler.inbound.RpcResponseDecode;
-import com.yang.netty.handler.outbound.RpcRequestEncode;
+import com.yang.netty.response.ResponseHandler;
+import com.yang.netty.response.RpcResponseDecode;
+import com.yang.netty.request.RpcRequestEncode;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.SocketChannel;

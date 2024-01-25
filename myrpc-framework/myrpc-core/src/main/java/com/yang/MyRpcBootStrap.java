@@ -2,7 +2,7 @@ package com.yang;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.reflect.ClassPath;
-import com.yang.annotations.RpcImpl;
+import com.yang.annotations.RpcService;
 import com.yang.config.*;
 import com.yang.core.HeartBeatDetector;
 import com.yang.core.ServerCloseHook;
@@ -81,6 +81,7 @@ public class MyRpcBootStrap {
    * @return 当前实例
    */
   public static MyRpcBootStrap getInstance() {
+
     return myRpcBootStrap;
   }
 
@@ -198,14 +199,14 @@ public class MyRpcBootStrap {
       } catch (ClassNotFoundException e) {
         throw new RuntimeException(e);
       }
-    }).filter(clazz -> clazz.getAnnotation(RpcImpl.class) != null).collect(Collectors.toList());
+    }).filter(clazz -> clazz.getAnnotation(RpcService.class) != null).collect(Collectors.toList());
 
     // 2.反射获得接口,构建实现
     classList.forEach(clazz ->{
       // 拿到接口名
       Class<?>[] interfaces = clazz.getInterfaces();
       // 拿到分组信息
-      RpcImpl annotation = clazz.getAnnotation(RpcImpl.class);
+      RpcService annotation = clazz.getAnnotation(RpcService.class);
       String group = annotation.group();
 
       Object impls =null;

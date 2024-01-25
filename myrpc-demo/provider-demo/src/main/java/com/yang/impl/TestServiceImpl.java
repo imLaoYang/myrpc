@@ -1,10 +1,10 @@
 package com.yang.impl;
 
 import com.yang.TestService;
-import com.yang.annotations.RpcImpl;
+import com.yang.annotations.RpcService;
 
 
-@RpcImpl
+@RpcService
 public class TestServiceImpl implements TestService {
   @Override
   public String test(String msg) {

@@ -4,7 +4,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * 熔断器
- *
+ *  consumer端
  */
 public class CircuitBreaker {
 

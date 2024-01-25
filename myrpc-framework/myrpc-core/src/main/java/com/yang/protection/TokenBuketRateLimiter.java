@@ -43,7 +43,6 @@ public class TokenBuketRateLimiter implements RateLimiter {
       int addTokens = (int) (intervalTime * rate / 1000);
       // 不能超过容量
       buket = Math.min(capacity, addTokens);
-
     }
 
     if (buket > 0) {

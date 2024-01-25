@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class ConsumerApplication {
+
   public static void main(String[] args) {
     // 获取代理对象,用ReferenceConfig封装
     // ReferenceConfig有生成代理的模板方法,get()

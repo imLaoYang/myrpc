@@ -1,4 +1,4 @@
-package com.yang.netty.handler.outbound;
+package com.yang.netty.response;
 
 import com.yang.compress.Compressor;
 import com.yang.compress.CompressorFactory;

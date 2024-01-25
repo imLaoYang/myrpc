@@ -1,0 +1,3 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+com.yang.config.MyrpcAutoConfiguration,\
+com.yang.config.MyrpcProperties

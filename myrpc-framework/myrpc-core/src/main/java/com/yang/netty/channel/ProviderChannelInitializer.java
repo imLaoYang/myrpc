@@ -1,8 +1,8 @@
 package com.yang.netty.channel;
 
 import com.yang.netty.handler.MethodCallHandler;
-import com.yang.netty.handler.inbound.RpcRequestDecode;
-import com.yang.netty.handler.outbound.RpcResponseEncode;
+import com.yang.netty.request.RpcRequestDecode;
+import com.yang.netty.response.RpcResponseEncode;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.SocketChannel;
 
